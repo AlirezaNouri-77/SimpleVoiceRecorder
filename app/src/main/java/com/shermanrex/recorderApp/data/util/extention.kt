@@ -69,11 +69,11 @@ fun convertTimeStampToDate(pattern: String): String {
   return sdf.format(Date(System.currentTimeMillis()))
 }
 
-fun Int.bitToKbps():String {
+fun Int.bitToKbps(): String {
   return this.div(1000).toString() + "Kbps"
 }
 
-fun Int.convertToKhz():String {
+fun Int.convertToKhz(): String {
   return this.div(1000).toString() + "KHz"
 }
 

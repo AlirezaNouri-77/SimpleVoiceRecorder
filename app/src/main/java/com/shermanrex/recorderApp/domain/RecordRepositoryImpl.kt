@@ -8,5 +8,5 @@ import kotlinx.coroutines.flow.Flow
 
 interface RecordRepositoryImpl {
   suspend fun getRecords(directoryPath: Uri): Flow<RepositoryResult<RecordModel>>
-  suspend fun getLastRecord(): Deferred<RecordModel?>
+  suspend fun getLastRecord(targetUri: Uri): Deferred<RecordModel?>
 }

@@ -1,16 +1,16 @@
-package com.shermanrex.presentation.notification
+package com.shermanrex.recorderApp.presentation.notification
 
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import androidx.core.app.NotificationCompat
-import com.shermanrex.recorderApp.presentation.broadcastReceiver.NotificationActionBroadcastReceiver
 import com.shermanrex.recorderApp.R
 import com.shermanrex.recorderApp.data.model.RecorderState
 import com.shermanrex.recorderApp.data.model.notification.ServiceActionNotification
 import com.shermanrex.recorderApp.data.service.MediaRecorderService
 import com.shermanrex.recorderApp.data.util.convertMilliSecondToTime
+import com.shermanrex.recorderApp.presentation.broadcastReceiver.NotificationActionBroadcastReceiver
 
 class MyNotificationManager(private var context: Context) {
 
@@ -19,6 +19,7 @@ class MyNotificationManager(private var context: Context) {
 
   val notification = NotificationCompat.Builder(context, CHANNEL_ID)
     .setSmallIcon(R.drawable.ic_launcher_foreground)
+    .setPriority(NotificationManager.IMPORTANCE_MAX)
     .setSilent(true)
     .setBadgeIconType(NotificationCompat.BADGE_ICON_NONE)
 
@@ -37,17 +38,18 @@ class MyNotificationManager(private var context: Context) {
       Intent(context.applicationContext, NotificationActionBroadcastReceiver::class.java).apply {
         action = ServiceActionNotification.STOP.toString()
       }
-    val intent = Intent(context.applicationContext, NotificationActionBroadcastReceiver::class.java).apply {
-      action = if (recorderState == RecorderState.RECORDING) {
-        notificationText = "Recording"
-        intentText = "Pause"
-        ServiceActionNotification.PAUSE.toString()
-      } else {
-        notificationText = "Pause"
-        intentText = "Resume"
-        ServiceActionNotification.RESUME.toString()
+    val intent =
+      Intent(context.applicationContext, NotificationActionBroadcastReceiver::class.java).apply {
+        action = if (recorderState == RecorderState.RECORDING) {
+          notificationText = "Recording"
+          intentText = "Pause"
+          ServiceActionNotification.PAUSE.toString()
+        } else {
+          notificationText = "Pause"
+          intentText = "Resume"
+          ServiceActionNotification.RESUME.toString()
+        }
       }
-    }
 
     val stopIntentPending =
       PendingIntent.getBroadcast(context, 1, stopIntent, PendingIntent.FLAG_IMMUTABLE)

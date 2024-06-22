@@ -1,4 +1,4 @@
-package com.shermanrex.recorderApp.presentation.screen
+package com.shermanrex.recorderApp.presentation.screen.recorder
 
 import android.net.Uri
 import androidx.compose.runtime.getValue
@@ -21,10 +21,11 @@ import com.shermanrex.recorderApp.data.model.notification.ServiceActionNotificat
 import com.shermanrex.recorderApp.data.model.uiState.CurrentMediaPlayerState
 import com.shermanrex.recorderApp.data.model.uiState.RecorderScreenUiState
 import com.shermanrex.recorderApp.data.repository.RecordRepository
-import com.shermanrex.recorderApp.data.repository.StorageManager
 import com.shermanrex.recorderApp.data.service.connection.MediaPlayerServiceConnection
 import com.shermanrex.recorderApp.data.service.connection.MediaRecorderServiceConnection
+import com.shermanrex.recorderApp.data.storage.StorageManager
 import com.shermanrex.recorderApp.data.util.convertTimeStampToDate
+import com.shermanrex.recorderApp.data.util.removeFileformat
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
@@ -43,8 +44,7 @@ class AppRecorderViewModel @Inject constructor(
   private val storageManager: StorageManager,
 ) : ViewModel() {
 
-
-  var screenRecorderScreenUiState = mutableStateOf(RecorderScreenUiState.INITIAL)
+  var screenRecorderScreenUiState = mutableStateOf(RecorderScreenUiState.LOADING)
 
   var recordDataList = mutableStateListOf<RecordModel>()
   var amplitudesList = mutableStateListOf<Float>()
@@ -105,6 +105,7 @@ class AppRecorderViewModel @Inject constructor(
       stopPlayAudio()
       recordDataList.remove(recordModel)
       storageManager.deleteRecord(recordModel.path)
+      if (recordDataList.size == 0) screenRecorderScreenUiState.value = RecorderScreenUiState.EMPTY
     }
   }
 
@@ -113,8 +114,13 @@ class AppRecorderViewModel @Inject constructor(
       val name = newName + ".${targetItem.format}"
       val result = storageManager.renameRecord(targetItem.path, name)
       if (result != Uri.EMPTY) {
-        recordDataList.find { it == targetItem }?.path = result
-        recordDataList.find { it == targetItem }?.name = newName
+        val nameAfterRename = storageManager.getRenameRecordName(result)
+        val targetItemIndex = recordDataList.indexOf(targetItem)
+        val updateRecord = recordDataList[targetItemIndex].copy(
+          path = result,
+          name = nameAfterRename.removeFileformat()
+        )
+        recordDataList.set(index = targetItemIndex, element = updateRecord)
       }
     }
   }
@@ -122,17 +128,27 @@ class AppRecorderViewModel @Inject constructor(
 
   fun startRecord(customFileName: String) {
     viewModelScope.launch {
+
       val savePath = dataStoreManager.getSavePath.stateIn(viewModelScope).value
       val nameFormat = dataStoreManager.getNameFormat.stateIn(viewModelScope).value
       val audioRecordSetting = dataStoreManager.getAudioFormat.stateIn(viewModelScope).value
+
       val fileName =
         customFileName.ifEmpty { convertTimeStampToDate(nameFormat.pattern) } + ".${audioRecordSetting.format.name}"
-      val fileDescriptor =
-        storageManager.getSavePath(savePath = savePath, fileName = fileName)
-      if (fileDescriptor != null) {
-        serviceConnection.mService.startRecord(fileDescriptor, audioRecordSetting)
-      } else {
-        // Todo about null safety
+      val document = storageManager.createDocumentFile(fileName = fileName, savePath = savePath)
+
+      if (document != null) {
+        val fileDescriptor =
+          storageManager.getSavePath(document)
+        if (fileDescriptor != null) {
+          serviceConnection.mService.startRecord(
+            fileDescriptor = fileDescriptor,
+            recordAudioSetting = audioRecordSetting,
+            fileSaveUri = document.uri,
+          )
+        } else {
+          // Todo about null safety
+        }
       }
     }
   }
@@ -140,13 +156,15 @@ class AppRecorderViewModel @Inject constructor(
 
   fun stopRecord() {
     serviceConnection.mService.stopRecord()
-    amplitudesList.clear()
     viewModelScope.launch {
-      recordRepository.getLastRecord().await()?.let { recordDataList.add(it) }
+      amplitudesList.clear()
+      recordRepository.getLastRecord(serviceConnection.mService.currentRecordFileUri).await()
+        ?.let { recordDataList.add(it) }
+      if (recordDataList.size != 0) screenRecorderScreenUiState.value = RecorderScreenUiState.DATA
     }
   }
 
-  fun saveDataStore(savePath: String) = viewModelScope.launch(Dispatchers.IO) {
+  fun writeDataStoreSavePath(savePath: String) = viewModelScope.launch(Dispatchers.IO) {
     dataStoreManager.writeSavePath(savePath)
   }
 
@@ -161,7 +179,9 @@ class AppRecorderViewModel @Inject constructor(
 
   fun resumeRecord() = serviceConnection.mService.resumeRecord()
 
-  fun startPlayAudio(recordModel: RecordModel) = mediaPlayerServiceConnection.startPlayAudio(recordModel)
+  fun startPlayAudio(recordModel: RecordModel) =
+    mediaPlayerServiceConnection.startPlayAudio(recordModel)
+
   fun stopPlayAudio() {
     mediaPlayerServiceConnection.stopPlayAudio()
     amplitudesList.clear()
@@ -188,8 +208,12 @@ class AppRecorderViewModel @Inject constructor(
               recordDataList.addAll(result.data)
               screenRecorderScreenUiState.value = RecorderScreenUiState.DATA
             }
-            RepositoryResult.Empty -> screenRecorderScreenUiState.value = RecorderScreenUiState.EMPTY
-            RepositoryResult.Loading -> screenRecorderScreenUiState.value = RecorderScreenUiState.LOADING
+
+            RepositoryResult.Empty -> screenRecorderScreenUiState.value =
+              RecorderScreenUiState.EMPTY
+
+            RepositoryResult.Loading -> screenRecorderScreenUiState.value =
+              RecorderScreenUiState.LOADING
           }
         }
       }
@@ -216,9 +240,6 @@ class AppRecorderViewModel @Inject constructor(
             this, SharingStarted.Eagerly, 0f
           ).collectLatest {
             withContext(Dispatchers.Main) {
-              if (amplitudesList.size > 800) {
-                amplitudesList.removeLast()
-              }
               amplitudesList.add(it)
             }
           }

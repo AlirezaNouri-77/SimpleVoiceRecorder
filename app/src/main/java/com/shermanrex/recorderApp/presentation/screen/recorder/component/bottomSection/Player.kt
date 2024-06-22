@@ -39,12 +39,12 @@ import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
+import com.shermanrex.presentation.screen.component.util.NoRipple
+import com.shermanrex.recorderApp.R
 import com.shermanrex.recorderApp.data.Constant
 import com.shermanrex.recorderApp.data.model.uiState.CurrentMediaPlayerState
 import com.shermanrex.recorderApp.data.util.convertMilliSecondToTime
-import com.shermanrex.presentation.screen.component.util.NoRipple
 import com.shermanrex.recorderApp.presentation.ui.theme.AppRecorderTheme
-import com.shermanrex.recorderApp.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -115,7 +115,7 @@ fun Player(
           color = MaterialTheme.colorScheme.onPrimary,
         )
         IconButton(
-          modifier = Modifier.weight(0.1f,false),
+          modifier = Modifier.weight(0.1f, false),
           onClick = { onClosePlayer() },
         ) {
           Icon(
@@ -208,7 +208,9 @@ fun Player(
       }
 
       Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp),
+        modifier = Modifier
+          .fillMaxWidth()
+          .padding(horizontal = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center,
       ) {
@@ -313,11 +315,11 @@ private fun Preview() {
       onSliderValueChange = {},
       onFastForwardClick = {},
       onFastBackwardClick = {},
-      onDeleteClick = {} ,
+      onDeleteClick = {},
       onShareClick = {},
       onClosePlayer = {},
       currentPlayerState = { CurrentMediaPlayerState() },
-      currentPosition = {0L},
-      )
+      currentPosition = { 0L },
+    )
   }
 }

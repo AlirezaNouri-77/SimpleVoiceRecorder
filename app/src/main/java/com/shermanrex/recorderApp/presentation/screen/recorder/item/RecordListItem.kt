@@ -1,4 +1,4 @@
-package com.shermanrex.presentation.screen.recorder.item
+package com.shermanrex.recorderApp.presentation.screen.recorder.item
 
 import android.net.Uri
 import android.util.Log
@@ -100,17 +100,17 @@ fun RecordListItem(
 private fun Preview() {
   AppRecorderTheme {
     RecordListItem(
-      modifier= Modifier.background(MaterialTheme.colorScheme.background),
+      modifier = Modifier.background(MaterialTheme.colorScheme.background),
       data = RecordModel(
-      path = Uri.EMPTY,
-      fullName = "Hans Richards",
-      name = "Leola Gaines",
-      duration = 3607,
-      format = "m4a",
-      bitrate = 1508,
-      sampleRate = 2737,
-      size = 3768
-    ),
+        path = Uri.EMPTY,
+        fullName = "Hans Richards",
+        name = "Leola Gaines",
+        duration = 3607,
+        format = "m4a",
+        bitrate = 1508,
+        sampleRate = 2737,
+        size = 3768
+      ),
       itemIndex = 1,
       currentItemIndex = 1,
       onItemClick = {},

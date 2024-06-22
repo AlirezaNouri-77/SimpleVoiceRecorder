@@ -13,11 +13,11 @@ fun RecordModel.toMediaItem(): MediaItem {
       MediaMetadata.Builder()
         .setDisplayTitle(this.name)
         .setExtras(
-        bundleOf(
-          METADATA_DURATION_KEY to this.duration,
-          METADATA_URI_KEY to this.path,
-        )
-      ).build()
+          bundleOf(
+            METADATA_DURATION_KEY to this.duration,
+            METADATA_URI_KEY to this.path,
+          )
+        ).build()
     )
     .setUri(this.path)
     .setMediaId(this.path.toString())

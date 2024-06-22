@@ -11,15 +11,11 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.displayCutoutPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material3.Text
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -27,10 +23,13 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.shermanrex.recorderApp.data.Constant
 import com.shermanrex.recorderApp.presentation.screen.permision.PermissionScreen
+import com.shermanrex.recorderApp.presentation.screen.permision.PermissionScreenUiState
+import com.shermanrex.recorderApp.presentation.screen.permision.PermissionViewModel
 import com.shermanrex.recorderApp.presentation.screen.recorder.RecorderScreen
 import com.shermanrex.recorderApp.presentation.ui.theme.AppRecorderTheme
-import com.shermanrex.recorderApp.data.Constant
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -47,16 +46,12 @@ class MainActivity : ComponentActivity() {
     )
     super.onCreate(savedInstanceState)
 
-    val uiState = mutableStateOf(PermissionScreenUiState.INITIAL)
-    var permissionGrant by mutableStateOf(false)
-    var saveLocationGrant by mutableStateOf(false)
-
     setContent {
 
-      val viewmodel: AppRecorderViewModel by viewModels()
+      val viewmodel: PermissionViewModel = hiltViewModel()
 
       if (checkAllPermission(this)) {
-        uiState.value = PermissionScreenUiState.PERMISSION_GRANT
+        viewmodel.uiState.value = PermissionScreenUiState.PERMISSION_GRANT
       }
 
       val activityResult =
@@ -64,9 +59,9 @@ class MainActivity : ComponentActivity() {
           val isGrant = list.values.reduce { acc, b -> acc && b }
           if (isGrant) {
             //uiState.value = PermissionScreenUiState.PERMISSION_GRANT
-            permissionGrant = true
+            viewmodel.permissionGrant = true
           } else {
-            uiState.value = PermissionScreenUiState.PERMISSION_NOT_GRANT
+            viewmodel.uiState.value = PermissionScreenUiState.PERMISSION_NOT_GRANT
           }
         }
 
@@ -76,18 +71,15 @@ class MainActivity : ComponentActivity() {
             Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
           it?.let { uri ->
             this.contentResolver.takePersistableUriPermission(uri, takeFlags)
-            viewmodel.saveDataStore(uri.toString())
-            saveLocationGrant = true
+            viewmodel.writeDataStoreSavePath(uri.toString())
+            viewmodel.saveLocationGrant = true
           }
         }
 
       AppRecorderTheme {
-        when (uiState.value) {
+        when (viewmodel.uiState.value) {
           PermissionScreenUiState.PERMISSION_GRANT -> {
-            RecorderScreen(
-              modifier = Modifier,
-              viewModel = viewmodel,
-            )
+            RecorderScreen()
           }
 
           PermissionScreenUiState.PERMISSION_NOT_GRANT -> {
@@ -106,14 +98,14 @@ class MainActivity : ComponentActivity() {
                   this@MainActivity,
                   activityResult,
                   notGrant = {
-                    uiState.value = PermissionScreenUiState.PERMISSION_NOT_GRANT
+                    viewmodel.uiState.value = PermissionScreenUiState.PERMISSION_NOT_GRANT
                   },
                 )
               },
               onLocation = { safActivityResult.launch(null) },
-              moveNextPage = { permissionGrant && saveLocationGrant },
+              moveNextPage = { viewmodel.permissionGrant && viewmodel.saveLocationGrant },
               onMoveToNext = {
-                uiState.value = PermissionScreenUiState.PERMISSION_GRANT
+                viewmodel.uiState.value = PermissionScreenUiState.PERMISSION_GRANT
               },
             )
           }
@@ -143,8 +135,4 @@ private fun checkAllPermission(context: Context): Boolean {
   return Constant.permissionList.all {
     ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED
   }
-}
-
-private enum class PermissionScreenUiState {
-  PERMISSION_GRANT, PERMISSION_NOT_GRANT, INITIAL
 }

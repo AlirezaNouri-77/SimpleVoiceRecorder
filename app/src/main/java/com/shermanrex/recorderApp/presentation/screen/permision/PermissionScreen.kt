@@ -1,8 +1,6 @@
 package com.shermanrex.recorderApp.presentation.screen.permision
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,19 +12,12 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
-import androidx.core.net.toUri
-import com.shermanrex.recorderApp.data.model.AudioFormat
-import com.shermanrex.recorderApp.data.model.RecordAudioSetting
-import com.shermanrex.recorderApp.data.model.RecorderState
-import com.shermanrex.recorderApp.data.model.SettingNameFormat
-import com.shermanrex.recorderApp.presentation.screen.setting.BottomSheetContent
 import com.shermanrex.recorderApp.presentation.ui.theme.AppRecorderTheme
 
 @Composable

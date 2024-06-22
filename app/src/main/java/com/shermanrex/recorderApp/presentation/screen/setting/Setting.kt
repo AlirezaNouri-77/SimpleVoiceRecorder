@@ -30,16 +30,16 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
-import com.shermanrex.recorderApp.presentation.screen.setting.component.BitRateSection
-import com.shermanrex.recorderApp.presentation.screen.setting.component.FormatSection
 import com.shermanrex.presentation.screen.setting.component.NameSection
-import com.shermanrex.recorderApp.presentation.screen.setting.component.SampleRateSection
-import com.shermanrex.recorderApp.presentation.screen.setting.component.SavePathSection
-import com.shermanrex.recorderApp.presentation.ui.theme.AppRecorderTheme
 import com.shermanrex.recorderApp.data.model.AudioFormat
 import com.shermanrex.recorderApp.data.model.RecordAudioSetting
 import com.shermanrex.recorderApp.data.model.RecorderState
 import com.shermanrex.recorderApp.data.model.SettingNameFormat
+import com.shermanrex.recorderApp.presentation.screen.setting.component.BitRateSection
+import com.shermanrex.recorderApp.presentation.screen.setting.component.FormatSection
+import com.shermanrex.recorderApp.presentation.screen.setting.component.SampleRateSection
+import com.shermanrex.recorderApp.presentation.screen.setting.component.SavePathSection
+import com.shermanrex.recorderApp.presentation.ui.theme.AppRecorderTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

@@ -2,7 +2,10 @@ package com.shermanrex.recorderApp.presentation.screen.recorder
 
 import android.content.Context
 import android.content.Intent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -41,22 +44,22 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.core.net.toUri
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LifecycleEventEffect
-import com.shermanrex.recorderApp.presentation.screen.AppRecorderViewModel
 import com.shermanrex.presentation.screen.component.util.getLongPressOffset
 import com.shermanrex.presentation.screen.recorder.component.DeleteDialog
 import com.shermanrex.presentation.screen.recorder.component.DialogNamePicker
-import com.shermanrex.recorderApp.presentation.screen.recorder.component.ListDropDownMenu
-import com.shermanrex.recorderApp.presentation.screen.recorder.component.TopSection
 import com.shermanrex.presentation.screen.recorder.component.bottomSection.BottomSection
-import com.shermanrex.presentation.screen.recorder.item.RecordListItem
 import com.shermanrex.recorderApp.data.model.DropDownMenuStateUi
 import com.shermanrex.recorderApp.data.model.SettingNameFormat
 import com.shermanrex.recorderApp.data.model.notification.ServiceActionNotification
 import com.shermanrex.recorderApp.data.model.uiState.RecorderScreenUiState
+import com.shermanrex.recorderApp.presentation.screen.recorder.component.ListDropDownMenu
+import com.shermanrex.recorderApp.presentation.screen.recorder.component.TopSection
+import com.shermanrex.recorderApp.presentation.screen.recorder.item.RecordListItem
 import com.shermanrex.recorderApp.presentation.screen.setting.Setting
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -65,7 +68,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun RecorderScreen(
   modifier: Modifier = Modifier,
-  viewModel: AppRecorderViewModel,
+  viewModel: AppRecorderViewModel = hiltViewModel(),
   density: Density = LocalDensity.current,
   context: Context = LocalContext.current,
   lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current,
@@ -118,7 +121,6 @@ fun RecorderScreen(
     mutableIntStateOf(-1)
   }
 
-
   ListDropDownMenu(
     dropDownMenuState = { dropDownMenuState },
     onDismiss = { dropDownMenuState = dropDownMenuState.copy(showDropDown = false) },
@@ -165,7 +167,7 @@ fun RecorderScreen(
         viewModel.writeAudioFormat(it)
       },
       onNewSavePath = {
-        viewModel.saveDataStore(it.toString())
+        viewModel.writeDataStoreSavePath(it.toString())
         viewModel.getRecords()
       },
       onAudioSampleRateClick = {
@@ -235,7 +237,7 @@ fun RecorderScreen(
         .fillMaxSize(),
     ) {
 
-      val (topSection, recordsControlRef, bottomGradient, recordLazyList) = createRefs()
+      val (topSection, recordsControlRef, bottomGradient, recordLazyList, centerIndicatorText) = createRefs()
 
       Crossfade(
         modifier = Modifier
@@ -260,7 +262,6 @@ fun RecorderScreen(
         ) {
           when (state) {
             RecorderScreenUiState.DATA -> {
-
               itemsIndexed(
                 items = viewModel.recordDataList,
                 key = { _, item -> item.id },
@@ -282,26 +283,40 @@ fun RecorderScreen(
               }
             }
 
-            else -> {
-              item {
-                Box(
-                  modifier = Modifier
-                    .fillMaxSize(),
-                  contentAlignment = Alignment.Center,
-                ) {
-                  Text(
-                    text = if (state == RecorderScreenUiState.EMPTY) "No Record" else "Loading",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp,
-                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.6f),
-                  )
-                }
-              }
-            }
+            else -> {}
           }
 
         }
       }
+
+      val centerIndicatorVisibility =
+        viewModel.screenRecorderScreenUiState.value == RecorderScreenUiState.EMPTY ||
+             viewModel.screenRecorderScreenUiState.value == RecorderScreenUiState.LOADING
+
+      AnimatedVisibility(
+        visible = centerIndicatorVisibility,
+        modifier = Modifier
+          .constrainAs(centerIndicatorText) {
+            top.linkTo(topSection.bottom)
+            start.linkTo(parent.start)
+            end.linkTo(parent.end)
+            bottom.linkTo(recordsControlRef.bottom)
+          },
+        enter = fadeIn(),
+        exit = fadeOut(),
+      ) {
+        Box(
+          contentAlignment = Alignment.Center,
+        ) {
+          Text(
+            text = if (viewModel.screenRecorderScreenUiState.value == RecorderScreenUiState.EMPTY) "No Record" else "Loading",
+            fontWeight = FontWeight.Bold,
+            fontSize = 20.sp,
+            color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.6f),
+          )
+        }
+      }
+
 
       TopSection(
         modifier = Modifier

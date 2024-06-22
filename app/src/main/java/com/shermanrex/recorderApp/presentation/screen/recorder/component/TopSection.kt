@@ -35,13 +35,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.shermanrex.presentation.screen.component.util.NoRipple
 import com.shermanrex.presentation.screen.component.util.bounce
-import com.shermanrex.recorderApp.presentation.ui.theme.AppRecorderTheme
 import com.shermanrex.recorderApp.R
 import com.shermanrex.recorderApp.data.model.AudioFormat
 import com.shermanrex.recorderApp.data.model.RecordAudioSetting
 import com.shermanrex.recorderApp.data.util.bitToKbps
 import com.shermanrex.recorderApp.data.util.convertMilliSecondToTime
 import com.shermanrex.recorderApp.data.util.convertToKhz
+import com.shermanrex.recorderApp.presentation.ui.theme.AppRecorderTheme
 
 @Composable
 fun TopSection(
@@ -131,7 +131,7 @@ fun TopSection(
 
         // draw vertical center line
         drawLine(
-          color = canvasColor.copy(alpha = 0.5f),
+          color = canvasColor,
           strokeWidth = 3f,
           alpha = 0.4f,
           cap = StrokeCap.Round,
@@ -148,11 +148,10 @@ fun TopSection(
         reCanvas.apply {
           list.forEachIndexed { index, item ->
 
-            val spikeHeight = item.div(100).coerceAtMost((canvasSize.height / 2) - 55)
+            val spikeHeight = item.div(60).coerceAtMost((canvasSize.height / 2) - 30)
 
             drawLine(
               color = canvasColor,
-              alpha = 0.6f,
               strokeWidth = spikeWidth,
               cap = StrokeCap.Round,
               start = Offset(

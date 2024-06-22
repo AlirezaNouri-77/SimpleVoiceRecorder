@@ -1,4 +1,4 @@
-package com.shermanrex.recorderApp.data.repository
+package com.shermanrex.recorderApp.data.storage
 
 import android.content.Context
 import android.media.MediaMetadataRetriever
@@ -19,17 +19,17 @@ class StorageManager @Inject constructor(
   var context: Context,
 ) : StorageManagerImpl {
 
-  override var currentFileUri: Uri = Uri.EMPTY
+  override fun getSavePath(document: DocumentFile): ParcelFileDescriptor? {
+    val fileDescriptor = context.contentResolver.openFileDescriptor(document.uri, "w")
+    return fileDescriptor
+  }
 
-  override fun getSavePath(fileName: String, savePath: String): ParcelFileDescriptor? {
+  fun createDocumentFile(fileName: String, savePath: String): DocumentFile? {
     val document = DocumentFile.fromTreeUri(
       context,
       Uri.parse(savePath)
     )
-    val documentFile = document?.createFile("audio/*", fileName)
-    val fileDescriptor = context.contentResolver.openFileDescriptor(documentFile!!.uri, "w")
-    currentFileUri = documentFile.uri
-    return fileDescriptor
+    return document?.createFile("audio/*", fileName)
   }
 
   override suspend fun deleteRecord(uri: Uri) {
@@ -41,6 +41,13 @@ class StorageManager @Inject constructor(
 
   override suspend fun renameRecord(uri: Uri, newName: String): Uri = withContext(Dispatchers.IO) {
     DocumentsContract.renameDocument(context.contentResolver, uri, newName) ?: Uri.EMPTY
+  }
+
+  suspend fun getRenameRecordName(uri: Uri): String {
+    return withContext(Dispatchers.IO) {
+      val document = DocumentFile.fromSingleUri(context, uri)
+      return@withContext document?.name.toString()
+    }
   }
 
   override suspend fun getFileDetailByMediaMetaRetriever(

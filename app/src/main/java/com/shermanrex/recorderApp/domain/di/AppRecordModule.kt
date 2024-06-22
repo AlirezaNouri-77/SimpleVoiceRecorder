@@ -7,9 +7,9 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStoreFile
 import com.shermanrex.recorderApp.data.dataStore.DataStoreManager
 import com.shermanrex.recorderApp.data.repository.RecordRepository
-import com.shermanrex.recorderApp.data.repository.StorageManager
 import com.shermanrex.recorderApp.data.service.connection.MediaPlayerServiceConnection
 import com.shermanrex.recorderApp.data.service.connection.MediaRecorderServiceConnection
+import com.shermanrex.recorderApp.data.storage.StorageManager
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -30,7 +30,7 @@ object AppRecordModule {
   @Provides
   @Singleton
   fun provideRecordRepository(@ApplicationContext context: Context): RecordRepository {
-    return RecordRepository(context = context , storageManager = provideStorageManager(context))
+    return RecordRepository(context = context, storageManager = provideStorageManager(context))
   }
 
   @Provides

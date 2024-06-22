@@ -5,6 +5,7 @@ import android.net.Uri
 import androidx.documentfile.provider.DocumentFile
 import com.shermanrex.recorderApp.data.model.RecordModel
 import com.shermanrex.recorderApp.data.model.RepositoryResult
+import com.shermanrex.recorderApp.data.storage.StorageManager
 import com.shermanrex.recorderApp.domain.RecordRepositoryImpl
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
@@ -45,9 +46,9 @@ class RecordRepository @Inject constructor(
 
   }
 
-  override suspend fun getLastRecord(): Deferred<RecordModel?> {
+  override suspend fun getLastRecord(targetUri: Uri): Deferred<RecordModel?> {
     return withContext(Dispatchers.IO) {
-      val document = DocumentFile.fromSingleUri(context, storageManager.currentFileUri)
+      val document = DocumentFile.fromSingleUri(context, targetUri)
       async { storageManager.getFileDetailByMediaMetaRetriever(document) }
     }
   }

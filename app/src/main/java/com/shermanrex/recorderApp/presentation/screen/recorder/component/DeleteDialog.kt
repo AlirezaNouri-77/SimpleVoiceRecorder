@@ -22,8 +22,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import com.shermanrex.recorderApp.presentation.ui.theme.AppRecorderTheme
 import com.shermanrex.recorderApp.data.model.RecordModel
+import com.shermanrex.recorderApp.presentation.ui.theme.AppRecorderTheme
 
 @Composable
 fun DeleteDialog(
