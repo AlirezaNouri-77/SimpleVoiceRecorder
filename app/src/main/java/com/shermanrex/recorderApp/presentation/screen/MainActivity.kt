@@ -58,7 +58,6 @@ class MainActivity : ComponentActivity() {
         rememberLauncherForActivityResult(contract = ActivityResultContracts.RequestMultiplePermissions()) { list ->
           val isGrant = list.values.reduce { acc, b -> acc && b }
           if (isGrant) {
-            //uiState.value = PermissionScreenUiState.PERMISSION_GRANT
             viewmodel.permissionGrant = true
           } else {
             viewmodel.uiState.value = PermissionScreenUiState.PERMISSION_NOT_GRANT

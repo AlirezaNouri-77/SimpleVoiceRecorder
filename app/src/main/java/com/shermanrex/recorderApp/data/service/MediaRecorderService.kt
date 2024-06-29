@@ -36,6 +36,7 @@ class MediaRecorderService : LifecycleService() {
   lateinit var mediaRecorder: MediaRecorder
 
   var currentRecordFileUri: Uri = Uri.EMPTY
+  private var startRecordTimeStamp = 0L
 
   private var _recorderState = MutableStateFlow(RecorderState.IDLE)
   val recorderState = _recorderState.asStateFlow()
@@ -57,9 +58,9 @@ class MediaRecorderService : LifecycleService() {
     mediaRecorder.maxAmplitude
     lifecycleScope.launch {
       while (this.isActive) {
-        delay(50)
+        delay(100)
         if (_recorderState.value == RecorderState.RECORDING) {
-          _recordTimer.update { _recordTimer.value + 50 }
+          _recordTimer.update { (System.currentTimeMillis() - startRecordTimeStamp).toInt() }
           _amplitudes.update { mediaRecorder.maxAmplitude.toFloat() }
         }
       }
@@ -129,9 +130,10 @@ class MediaRecorderService : LifecycleService() {
       setOutputFile(fileDescriptor.fileDescriptor)
       prepare()
       start()
-      setRecordState(RecorderState.RECORDING)
-      currentRecordFileUri = fileSaveUri
     }
+    setRecordState(RecorderState.RECORDING)
+    currentRecordFileUri = fileSaveUri
+    startRecordTimeStamp = System.currentTimeMillis()
     fileDescriptor.close()
     myNotificationManager.updatePauseAndResumeNotification(
       recorderState = _recorderState.value,

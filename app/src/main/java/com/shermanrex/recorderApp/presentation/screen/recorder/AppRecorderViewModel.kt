@@ -6,12 +6,15 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.shermanrex.recorderApp.data.dataStore.DataStoreManager
 import com.shermanrex.recorderApp.data.model.AudioFormat
+import com.shermanrex.recorderApp.data.model.DropDownMenuStateUi
 import com.shermanrex.recorderApp.data.model.RecordAudioSetting
 import com.shermanrex.recorderApp.data.model.RecordModel
 import com.shermanrex.recorderApp.data.model.RecorderState
@@ -62,6 +65,15 @@ class AppRecorderViewModel @Inject constructor(
   var mediaPlayerState by mutableStateOf(CurrentMediaPlayerState())
   var currentPlayerPosition by mutableFloatStateOf(0f)
 
+  var showDeleteDialog by mutableStateOf(false)
+  var showRenameDialog by mutableStateOf(false)
+  var dropDownMenuState by mutableStateOf(DropDownMenuStateUi())
+  var lazyListContentPaddingBottom by mutableStateOf(0.dp)
+  var lazyListContentPaddingTop by mutableStateOf(0.dp)
+  var showSettingBottomSheet by mutableStateOf(false)
+  var showNamePickerDialog by mutableStateOf(false)
+  var savePathNotFound by mutableStateOf(false)
+  var currentIndexClick by mutableIntStateOf(-1)
 
   init {
     getRecords()
@@ -146,9 +158,9 @@ class AppRecorderViewModel @Inject constructor(
             recordAudioSetting = audioRecordSetting,
             fileSaveUri = document.uri,
           )
-        } else {
-          // Todo about null safety
         }
+      }else {
+        savePathNotFound = true
       }
     }
   }

@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -16,6 +17,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -96,63 +99,40 @@ fun RecorderScreen(
     }
   }
 
-  var showDeleteDialog by remember {
-    mutableStateOf(false)
-  }
-  var showRenameDialog by remember {
-    mutableStateOf(false)
-  }
-  var dropDownMenuState by remember {
-    mutableStateOf(DropDownMenuStateUi())
-  }
-  var lazyListContentPaddingBottom by remember {
-    mutableStateOf(0.dp)
-  }
-  var lazyListContentPaddingTop by remember {
-    mutableStateOf(0.dp)
-  }
-  var showSettingBottomSheet by remember {
-    mutableStateOf(false)
-  }
-  var showNamePickerDialog by remember {
-    mutableStateOf(false)
-  }
-  var currentIndexClick by remember {
-    mutableIntStateOf(-1)
-  }
-
   ListDropDownMenu(
-    dropDownMenuState = { dropDownMenuState },
-    onDismiss = { dropDownMenuState = dropDownMenuState.copy(showDropDown = false) },
+    dropDownMenuState = { viewModel.dropDownMenuState },
+    onDismiss = {
+      viewModel.dropDownMenuState = viewModel.dropDownMenuState.copy(showDropDown = false)
+    },
     onRenameClick = {
-      dropDownMenuState = dropDownMenuState.copy(showDropDown = false)
-      showRenameDialog = true
+      viewModel.dropDownMenuState = viewModel.dropDownMenuState.copy(showDropDown = false)
+      viewModel.showRenameDialog = true
     },
     onDeleteClick = {
-      dropDownMenuState = dropDownMenuState.copy(showDropDown = false)
-      showDeleteDialog = true
+      viewModel.dropDownMenuState = viewModel.dropDownMenuState.copy(showDropDown = false)
+      viewModel.showDeleteDialog = true
     }
   )
 
 
-  if (showDeleteDialog) {
+  AnimatedVisibility(viewModel.showDeleteDialog) {
     DeleteDialog(
-      item = viewModel.recordDataList[dropDownMenuState.itemIndex],
+      item = viewModel.recordDataList[viewModel.dropDownMenuState.itemIndex],
       onDismiss = {
-        showDeleteDialog = false
+        viewModel.showDeleteDialog = false
       },
       onAccept = {
-        showDeleteDialog = false
-        viewModel.deleteRecord(viewModel.recordDataList[dropDownMenuState.itemIndex])
+        viewModel.showDeleteDialog = false
+        viewModel.deleteRecord(viewModel.recordDataList[viewModel.dropDownMenuState.itemIndex])
       },
     )
   }
 
-  if (showSettingBottomSheet) {
+  AnimatedVisibility(viewModel.showSettingBottomSheet) {
     Setting(
       sheetSate = sheetState,
       recorderState = viewModel.recorderState,
-      onDismiss = { showSettingBottomSheet = false },
+      onDismiss = { viewModel.showSettingBottomSheet = false },
       currentAudioFormat = viewModel.currentAudioFormat,
       onAudioBitRateClick = {
         viewModel.currentAudioFormat = viewModel.currentAudioFormat.copy(bitrate = it)
@@ -180,30 +160,50 @@ fun RecorderScreen(
     )
   }
 
-  if (showRenameDialog) {
-    val currentItem = viewModel.recordDataList[dropDownMenuState.itemIndex]
+  AnimatedVisibility(viewModel.showRenameDialog) {
+    val currentItem = viewModel.recordDataList[viewModel.dropDownMenuState.itemIndex]
     DialogNamePicker(
       title = "Rename",
       label = "",
       defaultText = currentItem.name,
       positiveText = "Rename",
       negativeText = "Cancel",
-      onDismiss = { showRenameDialog = false },
+      onDismiss = { viewModel.showRenameDialog = false },
       onPositive = {
         viewModel.renameRecord(targetItem = currentItem, newName = it)
-        showRenameDialog = false
+        viewModel.showRenameDialog = false
       },
     )
   }
 
-  if (showNamePickerDialog) {
+  AnimatedVisibility(viewModel.savePathNotFound) {
+    AlertDialog(
+      title = { Text(text = "Save Path not found") },
+      text = { Text(text = "cant start record because save path not found please go in app setting and choose save path") },
+      confirmButton = {
+        Button(
+          onClick = {
+            viewModel.savePathNotFound = false
+            viewModel.showSettingBottomSheet = true
+          },
+        ) {
+          Text(text = "open setting")
+        }
+      },
+      onDismissRequest = {
+        viewModel.savePathNotFound = false
+      },
+    )
+  }
+
+  AnimatedVisibility(viewModel.showNamePickerDialog) {
     DialogNamePicker(
       title = "Record",
       label = "Enter a name",
       defaultText = "",
       positiveText = "Start",
       negativeText = "Cancel",
-      onDismiss = { showNamePickerDialog = false },
+      onDismiss = { viewModel.showNamePickerDialog = false },
       onPositive = {
         viewModel.sendActionToService(ServiceActionNotification.START)
         viewModel.startRecord(it)
@@ -211,8 +211,8 @@ fun RecorderScreen(
     )
   }
 
-  LaunchedEffect(showSettingBottomSheet) {
-    if (showSettingBottomSheet) {
+  LaunchedEffect(viewModel.showSettingBottomSheet) {
+    if (viewModel.showSettingBottomSheet) {
       scope.launch(Dispatchers.Main) {
         sheetState.show()
       }
@@ -227,7 +227,7 @@ fun RecorderScreen(
     modifier = modifier
       .fillMaxSize()
       .getLongPressOffset {
-        dropDownMenuState = dropDownMenuState.copy(longPressOffset = it)
+        viewModel.dropDownMenuState = viewModel.dropDownMenuState.copy(longPressOffset = it)
       },
     color = MaterialTheme.colorScheme.background,
   ) {
@@ -256,8 +256,8 @@ fun RecorderScreen(
           state = lazyListState,
           horizontalAlignment = Alignment.CenterHorizontally,
           contentPadding = PaddingValues(
-            bottom = lazyListContentPaddingBottom,
-            top = lazyListContentPaddingTop,
+            bottom = viewModel.lazyListContentPaddingBottom,
+            top = viewModel.lazyListContentPaddingTop,
           ),
         ) {
           when (state) {
@@ -269,15 +269,16 @@ fun RecorderScreen(
                 RecordListItem(
                   modifier = Modifier.animateItemPlacement(),
                   itemIndex = index,
-                  currentItemIndex = currentIndexClick,
+                  currentItemIndex = viewModel.currentIndexClick,
                   data = item,
                   onItemClick = {
                     viewModel.startPlayAudio(item)
-                    currentIndexClick = it
+                    viewModel.currentIndexClick = it
                   },
                   onLongItemClick = {
-                    dropDownMenuState = dropDownMenuState.copy(showDropDown = true)
-                    dropDownMenuState = dropDownMenuState.copy(itemIndex = it)
+                    viewModel.dropDownMenuState =
+                      viewModel.dropDownMenuState.copy(showDropDown = true)
+                    viewModel.dropDownMenuState = viewModel.dropDownMenuState.copy(itemIndex = it)
                   },
                 )
               }
@@ -327,19 +328,19 @@ fun RecorderScreen(
           }
           .onGloballyPositioned {
             with(density) {
-              lazyListContentPaddingTop = it.size.height.toDp() + 15.dp
+              viewModel.lazyListContentPaddingTop = it.size.height.toDp() + 15.dp
             }
           },
         amplitudesList = { viewModel.amplitudesList },
         recordTime = { viewModel.recordTime },
         currentAudioSetting = viewModel.currentAudioFormat,
-        onSettingClick = { showSettingBottomSheet = true },
+        onSettingClick = { viewModel.showSettingBottomSheet = true },
       )
 
       Box(
         modifier = Modifier
           .fillMaxWidth()
-          .height(lazyListContentPaddingBottom / 1.5f)
+          .height(viewModel.lazyListContentPaddingBottom / 1.5f)
           .constrainAs(bottomGradient) {
             end.linkTo(parent.end)
             start.linkTo(parent.start)
@@ -362,7 +363,7 @@ fun RecorderScreen(
           }
           .onGloballyPositioned {
             with(density) {
-              lazyListContentPaddingBottom = it.size.height.toDp()
+              viewModel.lazyListContentPaddingBottom = it.size.height.toDp()
             }
           },
         recorderState = { viewModel.recorderState },
@@ -373,13 +374,13 @@ fun RecorderScreen(
               viewModel.sendActionToService(ServiceActionNotification.START)
               viewModel.startRecord("")
             } else {
-              showNamePickerDialog = true
+              viewModel.showNamePickerDialog = true
             }
           }
         },
         onDeleteClick = {
-          showDeleteDialog = true
-          currentIndexClick = -1
+          viewModel.showDeleteDialog = true
+          viewModel.currentIndexClick = -1
         },
         onShareClick = { itemUri ->
           val intent = Intent().apply {
@@ -392,7 +393,7 @@ fun RecorderScreen(
         currentPosition = { viewModel.currentPlayerPosition.toLong() },
         onClosePlayer = {
           viewModel.stopPlayAudio()
-          currentIndexClick = -1
+          viewModel.currentIndexClick = -1
         },
         onResumeRecordClick = viewModel::resumeRecord,
         onStopRecordClick = viewModel::stopRecord,
@@ -409,3 +410,4 @@ fun RecorderScreen(
 
   }
 }
+
