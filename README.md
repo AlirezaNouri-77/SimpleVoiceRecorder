@@ -1,4 +1,4 @@
-## Simple App Recorder 
+## Simple Voice Recorder 
 
 ### Technology
 - Kotlin & Jetpack Compose
