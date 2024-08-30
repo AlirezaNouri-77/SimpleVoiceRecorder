@@ -11,14 +11,19 @@ import android.os.ParcelFileDescriptor
 import androidx.core.app.ServiceCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
-import com.shermanrex.recorderApp.data.model.RecordAudioSetting
-import com.shermanrex.recorderApp.data.model.RecorderState
-import com.shermanrex.recorderApp.data.model.notification.ServiceActionNotification
+import com.shermanrex.recorderApp.data.dataStore.DataStoreManager
+import com.shermanrex.recorderApp.data.storage.StorageManager
+import com.shermanrex.recorderApp.domain.model.RecordAudioSetting
+import com.shermanrex.recorderApp.domain.model.RecorderState
+import com.shermanrex.recorderApp.domain.model.notification.ServiceActionNotification
 import com.shermanrex.recorderApp.presentation.notification.MyNotificationManager
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -37,6 +42,7 @@ class MediaRecorderService : LifecycleService() {
 
   var currentRecordFileUri: Uri = Uri.EMPTY
   private var startRecordTimeStamp = 0L
+  private var currentTimer = 0
 
   private var _recorderState = MutableStateFlow(RecorderState.IDLE)
   val recorderState = _recorderState.asStateFlow()
@@ -54,18 +60,17 @@ class MediaRecorderService : LifecycleService() {
 
   override fun onCreate() {
     super.onCreate()
-
     mediaRecorder.maxAmplitude
-    lifecycleScope.launch {
+    lifecycleScope.launch(Dispatchers.IO) {
       while (this.isActive) {
         delay(100)
         if (_recorderState.value == RecorderState.RECORDING) {
-          _recordTimer.update { (System.currentTimeMillis() - startRecordTimeStamp).toInt() }
-          _amplitudes.update { mediaRecorder.maxAmplitude.toFloat() }
+          val timeRecord = (System.currentTimeMillis() - startRecordTimeStamp).toInt() + currentTimer
+          _recordTimer.value = timeRecord
+          _amplitudes.value = mediaRecorder.maxAmplitude.toFloat()
         }
       }
     }
-
   }
 
   override fun onTaskRemoved(rootIntent: Intent?) {
@@ -147,11 +152,13 @@ class MediaRecorderService : LifecycleService() {
       mediaRecorder.reset()
       myNotificationManager.setStopRecordNotification(_recordTimer.value)
       _recordTimer.value = 0
+      currentTimer = 0
     }
   }
 
   fun resumeRecord() {
     mediaRecorder.resume()
+    startRecordTimeStamp = System.currentTimeMillis()
     setRecordState(RecorderState.RECORDING)
     myNotificationManager.updatePauseAndResumeNotification(
       recorderState = _recorderState.value,
@@ -161,6 +168,7 @@ class MediaRecorderService : LifecycleService() {
   fun pauseRecord() {
     if (recorderState.value == RecorderState.RECORDING) {
       mediaRecorder.pause()
+      currentTimer = _recordTimer.value
     }
     setRecordState(RecorderState.PAUSE)
     myNotificationManager.updatePauseAndResumeNotification(

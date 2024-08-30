@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
-import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -27,12 +26,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -52,14 +46,14 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LifecycleEventEffect
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.shermanrex.presentation.screen.component.util.getLongPressOffset
 import com.shermanrex.presentation.screen.recorder.component.DeleteDialog
 import com.shermanrex.presentation.screen.recorder.component.DialogNamePicker
 import com.shermanrex.presentation.screen.recorder.component.bottomSection.BottomSection
-import com.shermanrex.recorderApp.data.model.DropDownMenuStateUi
-import com.shermanrex.recorderApp.data.model.SettingNameFormat
-import com.shermanrex.recorderApp.data.model.notification.ServiceActionNotification
-import com.shermanrex.recorderApp.data.model.uiState.RecorderScreenUiState
+import com.shermanrex.recorderApp.domain.model.SettingNameFormat
+import com.shermanrex.recorderApp.domain.model.notification.ServiceActionNotification
+import com.shermanrex.recorderApp.domain.model.uiState.RecorderScreenUiState
 import com.shermanrex.recorderApp.presentation.screen.recorder.component.ListDropDownMenu
 import com.shermanrex.recorderApp.presentation.screen.recorder.component.TopSection
 import com.shermanrex.recorderApp.presentation.screen.recorder.item.RecordListItem
@@ -80,6 +74,8 @@ fun RecorderScreen(
   val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
   val lazyListState = rememberLazyListState()
   val scope = rememberCoroutineScope()
+
+  val recordTimer = viewModel.recordTime.collectAsStateWithLifecycle().value
 
   LifecycleEventEffect(event = Lifecycle.Event.ON_START) {
     scope.launch {
@@ -115,20 +111,18 @@ fun RecorderScreen(
   )
 
 
-  AnimatedVisibility(viewModel.showDeleteDialog) {
+  if(viewModel.showDeleteDialog) {
     DeleteDialog(
       item = viewModel.recordDataList[viewModel.dropDownMenuState.itemIndex],
-      onDismiss = {
-        viewModel.showDeleteDialog = false
-      },
+      onDismiss = { viewModel.showDeleteDialog = false },
       onAccept = {
         viewModel.showDeleteDialog = false
-        viewModel.deleteRecord(viewModel.recordDataList[viewModel.dropDownMenuState.itemIndex])
+        viewModel.deleteRecord(it)
       },
     )
   }
 
-  AnimatedVisibility(viewModel.showSettingBottomSheet) {
+  if(viewModel.showSettingBottomSheet) {
     Setting(
       sheetSate = sheetState,
       recorderState = viewModel.recorderState,
@@ -160,7 +154,7 @@ fun RecorderScreen(
     )
   }
 
-  AnimatedVisibility(viewModel.showRenameDialog) {
+  if(viewModel.showRenameDialog) {
     val currentItem = viewModel.recordDataList[viewModel.dropDownMenuState.itemIndex]
     DialogNamePicker(
       title = "Rename",
@@ -176,7 +170,7 @@ fun RecorderScreen(
     )
   }
 
-  AnimatedVisibility(viewModel.savePathNotFound) {
+  if(viewModel.savePathNotFound) {
     AlertDialog(
       title = { Text(text = "Save Path not found") },
       text = { Text(text = "cant start record because save path not found please go in app setting and choose save path") },
@@ -196,7 +190,7 @@ fun RecorderScreen(
     )
   }
 
-  AnimatedVisibility(viewModel.showNamePickerDialog) {
+  if(viewModel.showNamePickerDialog) {
     DialogNamePicker(
       title = "Record",
       label = "Enter a name",
@@ -276,9 +270,7 @@ fun RecorderScreen(
                     viewModel.currentIndexClick = it
                   },
                   onLongItemClick = {
-                    viewModel.dropDownMenuState =
-                      viewModel.dropDownMenuState.copy(showDropDown = true)
-                    viewModel.dropDownMenuState = viewModel.dropDownMenuState.copy(itemIndex = it)
+                    viewModel.dropDownMenuState = viewModel.dropDownMenuState.copy(showDropDown = true, itemIndex = it)
                   },
                 )
               }
@@ -332,7 +324,8 @@ fun RecorderScreen(
             }
           },
         amplitudesList = { viewModel.amplitudesList },
-        recordTime = { viewModel.recordTime },
+        recordTime = { recordTimer },
+        recorderState = viewModel.recorderState,
         currentAudioSetting = viewModel.currentAudioFormat,
         onSettingClick = { viewModel.showSettingBottomSheet = true },
       )

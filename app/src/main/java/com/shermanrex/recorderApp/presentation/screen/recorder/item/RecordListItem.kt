@@ -22,7 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.shermanrex.recorderApp.data.model.RecordModel
+import com.shermanrex.recorderApp.domain.model.RecordModel
 import com.shermanrex.recorderApp.data.util.convertByteToReadableSize
 import com.shermanrex.recorderApp.data.util.convertMilliSecondToTime
 import com.shermanrex.recorderApp.data.util.convertToKbps
@@ -46,9 +46,10 @@ fun RecordListItem(
   Surface(
     modifier = modifier
       .combinedClickable(
-        onLongClick = { onLongItemClick(itemIndex) },
+        onLongClick = {
+          onLongItemClick(itemIndex)
+        },
         onClick = {
-          Log.d("TAG9898", "RecordListItem: " + data.duration)
           onItemClick(itemIndex)
         }
       )
@@ -109,7 +110,8 @@ private fun Preview() {
         format = "m4a",
         bitrate = 1508,
         sampleRate = 2737,
-        size = 3768
+        size = 3768,
+        date = "",
       ),
       itemIndex = 1,
       currentItemIndex = 1,

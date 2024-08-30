@@ -42,7 +42,7 @@ import androidx.core.net.toUri
 import com.shermanrex.presentation.screen.component.util.NoRipple
 import com.shermanrex.recorderApp.R
 import com.shermanrex.recorderApp.data.Constant
-import com.shermanrex.recorderApp.data.model.uiState.CurrentMediaPlayerState
+import com.shermanrex.recorderApp.domain.model.uiState.CurrentMediaPlayerState
 import com.shermanrex.recorderApp.data.util.convertMilliSecondToTime
 import com.shermanrex.recorderApp.presentation.ui.theme.AppRecorderTheme
 
@@ -131,7 +131,7 @@ fun Player(
         horizontalArrangement = Arrangement.SpaceEvenly,
       ) {
         Text(
-          text = currentPosition().toInt().convertMilliSecondToTime(false),
+          text = currentPosition().convertMilliSecondToTime(false),
           modifier = Modifier.weight(0.15f, false),
           fontSize = 14.sp,
           color = MaterialTheme.colorScheme.onPrimary,

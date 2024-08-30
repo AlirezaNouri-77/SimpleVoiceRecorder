@@ -5,9 +5,9 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
-import com.shermanrex.recorderApp.data.model.AudioFormat
-import com.shermanrex.recorderApp.data.model.RecordAudioSetting
-import com.shermanrex.recorderApp.data.model.SettingNameFormat
+import com.shermanrex.recorderApp.domain.model.AudioFormat
+import com.shermanrex.recorderApp.domain.model.RecordAudioSetting
+import com.shermanrex.recorderApp.domain.model.SettingNameFormat
 import com.shermanrex.recorderApp.domain.DataStoreManagerImpl
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow

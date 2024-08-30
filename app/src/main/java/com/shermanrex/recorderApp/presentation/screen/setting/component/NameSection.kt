@@ -14,7 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.shermanrex.recorderApp.data.model.SettingNameFormat
+import com.shermanrex.recorderApp.domain.model.SettingNameFormat
 import com.shermanrex.recorderApp.data.util.convertTimeStampToDate
 
 @Composable

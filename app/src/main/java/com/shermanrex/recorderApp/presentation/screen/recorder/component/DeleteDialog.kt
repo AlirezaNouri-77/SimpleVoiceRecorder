@@ -22,7 +22,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import com.shermanrex.recorderApp.data.model.RecordModel
+import com.shermanrex.recorderApp.domain.model.RecordModel
 import com.shermanrex.recorderApp.presentation.ui.theme.AppRecorderTheme
 
 @Composable
@@ -99,7 +99,8 @@ private fun Preview() {
         format = ".m4a",
         bitrate = 7369,
         sampleRate = 8948,
-        size = 4111
+        size = 4111,
+        date = "",
       ),
       onDismiss = { /*TODO*/ },
       onAccept = {},

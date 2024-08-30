@@ -36,7 +36,7 @@ import androidx.compose.ui.unit.sp
 import com.shermanrex.presentation.screen.component.util.NoRipple
 import com.shermanrex.presentation.screen.component.util.bounce
 import com.shermanrex.recorderApp.R
-import com.shermanrex.recorderApp.data.model.RecorderState
+import com.shermanrex.recorderApp.domain.model.RecorderState
 
 @Composable
 fun Recorder(

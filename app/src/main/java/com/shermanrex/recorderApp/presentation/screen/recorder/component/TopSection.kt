@@ -1,5 +1,6 @@
 package com.shermanrex.recorderApp.presentation.screen.recorder.component
 
+import android.util.Log
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -36,8 +37,9 @@ import androidx.compose.ui.unit.sp
 import com.shermanrex.presentation.screen.component.util.NoRipple
 import com.shermanrex.presentation.screen.component.util.bounce
 import com.shermanrex.recorderApp.R
-import com.shermanrex.recorderApp.data.model.AudioFormat
-import com.shermanrex.recorderApp.data.model.RecordAudioSetting
+import com.shermanrex.recorderApp.domain.model.AudioFormat
+import com.shermanrex.recorderApp.domain.model.RecordAudioSetting
+import com.shermanrex.recorderApp.domain.model.RecorderState
 import com.shermanrex.recorderApp.data.util.bitToKbps
 import com.shermanrex.recorderApp.data.util.convertMilliSecondToTime
 import com.shermanrex.recorderApp.data.util.convertToKhz
@@ -47,6 +49,7 @@ import com.shermanrex.recorderApp.presentation.ui.theme.AppRecorderTheme
 fun TopSection(
   modifier: Modifier = Modifier,
   currentAudioSetting: RecordAudioSetting,
+  recorderState: RecorderState,
   amplitudesList: () -> List<Float>,
   recordTime: () -> Int,
   onSettingClick: () -> Unit,
@@ -118,15 +121,15 @@ fun TopSection(
           .fillMaxWidth()
           .background(
             MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f),
-            shape = RoundedCornerShape(20.dp)
+            shape = RoundedCornerShape(10.dp)
           ),
       ) {
 
         val canvasSize = this.size
-        val spikeWidth = 5f
-        val spikeSpace = 9f
+        val spikeWidth = 6f
+        val spikeSpace = 8f
 
-        val spikeCount = ((canvasSize.width - 16.dp.value) / (spikeWidth + spikeSpace)).toInt()
+        val spikeCount = ((canvasSize.width - ((spikeSpace))) / (spikeWidth + spikeSpace)).toInt()
         val list = amplitudesList().takeLast(spikeCount).asReversed()
 
         // draw vertical center line
@@ -146,24 +149,26 @@ fun TopSection(
         )
 
         reCanvas.apply {
-          list.forEachIndexed { index, item ->
+          if (recorderState == RecorderState.RECORDING || recorderState == RecorderState.PAUSE) {
+            list.forEachIndexed { index, item ->
 
-            val spikeHeight = item.div(60).coerceAtMost((canvasSize.height / 2) - 30)
+              val spikeHeight = item.div(60).coerceAtMost((canvasSize.height / 2) - 30)
 
-            drawLine(
-              color = canvasColor,
-              strokeWidth = spikeWidth,
-              cap = StrokeCap.Round,
-              start = Offset(
-                x = (canvasSize.width - spikeWidth - 11) - (index * (spikeWidth + spikeSpace)),
-                y = canvasSize.height / 2f + spikeHeight
-              ),
-              end = Offset(
-                x = (canvasSize.width - spikeWidth - 11) - (index * (spikeWidth + spikeSpace)),
-                y = canvasSize.height / 2f - spikeHeight
-              ),
-            )
+              drawLine(
+                color = canvasColor,
+                strokeWidth = spikeWidth,
+                cap = StrokeCap.Round,
+                start = Offset(
+                  x = (canvasSize.width - spikeWidth - spikeSpace) - (index * (spikeWidth + spikeSpace)),
+                  y = canvasSize.height / 2f + spikeHeight
+                ),
+                end = Offset(
+                  x = (canvasSize.width - spikeWidth - spikeSpace) - (index * (spikeWidth + spikeSpace)),
+                  y = canvasSize.height / 2f - spikeHeight
+                ),
+              )
 
+            }
           }
         }
 
@@ -198,7 +203,7 @@ fun TopSection(
   }
 }
 
-@Preview
+@Preview(widthDp = 943)
 @Preview(uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun Preview() {
@@ -215,7 +220,8 @@ private fun Preview() {
       ),
       amplitudesList = { list },
       recordTime = { 0 },
-      onSettingClick = {}
+      onSettingClick = {},
+      recorderState = RecorderState.RECORDING,
     )
   }
 }

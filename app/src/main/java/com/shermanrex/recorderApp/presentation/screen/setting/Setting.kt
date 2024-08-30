@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.wrapContentHeight
@@ -31,10 +32,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
 import com.shermanrex.presentation.screen.setting.component.NameSection
-import com.shermanrex.recorderApp.data.model.AudioFormat
-import com.shermanrex.recorderApp.data.model.RecordAudioSetting
-import com.shermanrex.recorderApp.data.model.RecorderState
-import com.shermanrex.recorderApp.data.model.SettingNameFormat
+import com.shermanrex.recorderApp.domain.model.AudioFormat
+import com.shermanrex.recorderApp.domain.model.RecordAudioSetting
+import com.shermanrex.recorderApp.domain.model.RecorderState
+import com.shermanrex.recorderApp.domain.model.SettingNameFormat
 import com.shermanrex.recorderApp.presentation.screen.setting.component.BitRateSection
 import com.shermanrex.recorderApp.presentation.screen.setting.component.FormatSection
 import com.shermanrex.recorderApp.presentation.screen.setting.component.SampleRateSection
@@ -119,9 +120,8 @@ fun BottomSheetContent(
   Surface(
     modifier = modifier
       .fillMaxWidth()
-      .wrapContentHeight(align = Alignment.Top)
-      .systemBarsPadding()
-      .padding(horizontal = 15.dp),
+      .navigationBarsPadding()
+      .padding(start = 15.dp, end = 15.dp, bottom = 5.dp),
     color = Color.Transparent,
   ) {
     Column(

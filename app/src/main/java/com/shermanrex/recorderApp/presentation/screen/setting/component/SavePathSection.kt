@@ -16,7 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
-import com.shermanrex.recorderApp.data.model.RecorderState
+import com.shermanrex.recorderApp.domain.model.RecorderState
 
 @Composable
 fun SavePathSection(
