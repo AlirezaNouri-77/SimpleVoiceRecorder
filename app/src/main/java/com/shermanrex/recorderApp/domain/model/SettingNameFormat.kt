@@ -1,4 +1,4 @@
-package com.shermanrex.recorderApp.data.model
+package com.shermanrex.recorderApp.domain.model
 
 enum class SettingNameFormat(val value: String, val id: Int, val pattern: String) {
   FULL_DATE_TIME("YYYY/MM/DD - Time", 1, "yyyy-MM-dd HH:mm"),

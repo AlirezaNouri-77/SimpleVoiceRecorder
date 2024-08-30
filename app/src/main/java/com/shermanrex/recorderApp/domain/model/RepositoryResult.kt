@@ -1,4 +1,4 @@
-package com.shermanrex.recorderApp.data.model
+package com.shermanrex.recorderApp.domain.model
 
 sealed interface RepositoryResult<out T> {
   data object Loading : RepositoryResult<Nothing>

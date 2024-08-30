@@ -3,8 +3,8 @@ package com.shermanrex.recorderApp.data.repository
 import android.content.Context
 import android.net.Uri
 import androidx.documentfile.provider.DocumentFile
-import com.shermanrex.recorderApp.data.model.RecordModel
-import com.shermanrex.recorderApp.data.model.RepositoryResult
+import com.shermanrex.recorderApp.domain.model.RecordModel
+import com.shermanrex.recorderApp.domain.model.RepositoryResult
 import com.shermanrex.recorderApp.data.storage.StorageManager
 import com.shermanrex.recorderApp.domain.RecordRepositoryImpl
 import kotlinx.coroutines.Deferred
@@ -35,7 +35,8 @@ class RecordRepository @Inject constructor(
             )
           } else null
         }
-      }?.awaitAll()?.filterNotNull() ?: emptyList()
+      }?.awaitAll()?.filterNotNull()?.sortedByDescending { it.date } ?: emptyList()
+
       if (result.isNotEmpty()) {
         send(RepositoryResult.ListData(result))
       } else {

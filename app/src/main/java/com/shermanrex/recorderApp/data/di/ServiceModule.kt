@@ -1,15 +1,23 @@
-package com.shermanrex.recorderApp.domain.di
+package com.shermanrex.recorderApp.data.di
 
 import android.content.Context
 import android.media.MediaRecorder
 import android.os.Build
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.PreferenceDataStoreFactory
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.preferencesDataStoreFile
+import com.shermanrex.recorderApp.data.storage.StorageManager
 import com.shermanrex.recorderApp.presentation.notification.MyNotificationManager
+import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ServiceComponent
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.android.scopes.ServiceScoped
+import javax.inject.Qualifier
+import javax.inject.Singleton
 
 
 @Module
@@ -21,7 +29,6 @@ object ServiceModule {
   fun provideNotificationManager(@ApplicationContext context: Context): MyNotificationManager {
     return MyNotificationManager(context)
   }
-
   @Provides
   @ServiceScoped
   fun provideMediaRecorder(@ApplicationContext context: Context): MediaRecorder {

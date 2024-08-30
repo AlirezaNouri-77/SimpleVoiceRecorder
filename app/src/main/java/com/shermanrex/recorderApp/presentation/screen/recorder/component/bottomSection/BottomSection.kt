@@ -12,8 +12,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.media3.common.MediaMetadata
-import com.shermanrex.recorderApp.data.model.RecorderState
-import com.shermanrex.recorderApp.data.model.uiState.CurrentMediaPlayerState
+import com.shermanrex.recorderApp.domain.model.RecorderState
+import com.shermanrex.recorderApp.domain.model.uiState.CurrentMediaPlayerState
 
 @Composable
 fun BottomSection(

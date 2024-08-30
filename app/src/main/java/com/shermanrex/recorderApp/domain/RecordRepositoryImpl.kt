@@ -1,8 +1,8 @@
 package com.shermanrex.recorderApp.domain
 
 import android.net.Uri
-import com.shermanrex.recorderApp.data.model.RecordModel
-import com.shermanrex.recorderApp.data.model.RepositoryResult
+import com.shermanrex.recorderApp.domain.model.RecordModel
+import com.shermanrex.recorderApp.domain.model.RepositoryResult
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.flow.Flow
 

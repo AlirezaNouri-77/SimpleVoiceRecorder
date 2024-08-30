@@ -1,4 +1,4 @@
-package com.shermanrex.recorderApp.data.model.uiState
+package com.shermanrex.recorderApp.domain.model.uiState
 
 import androidx.media3.common.MediaMetadata
 
@@ -6,4 +6,11 @@ import androidx.media3.common.MediaMetadata
 data class CurrentMediaPlayerState(
   var isPlaying: Boolean = false,
   var mediaMetadata: MediaMetadata = MediaMetadata.EMPTY,
-)
+) {
+  companion object {
+    val Empty = CurrentMediaPlayerState(
+      isPlaying = false,
+      mediaMetadata = MediaMetadata.EMPTY,
+    )
+  }
+}

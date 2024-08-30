@@ -6,8 +6,8 @@ import android.content.Context
 import android.content.Intent
 import androidx.core.app.NotificationCompat
 import com.shermanrex.recorderApp.R
-import com.shermanrex.recorderApp.data.model.RecorderState
-import com.shermanrex.recorderApp.data.model.notification.ServiceActionNotification
+import com.shermanrex.recorderApp.domain.model.RecorderState
+import com.shermanrex.recorderApp.domain.model.notification.ServiceActionNotification
 import com.shermanrex.recorderApp.data.service.MediaRecorderService
 import com.shermanrex.recorderApp.data.util.convertMilliSecondToTime
 import com.shermanrex.recorderApp.presentation.broadcastReceiver.NotificationActionBroadcastReceiver

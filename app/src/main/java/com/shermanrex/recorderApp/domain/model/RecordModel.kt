@@ -1,4 +1,4 @@
-package com.shermanrex.recorderApp.data.model
+package com.shermanrex.recorderApp.domain.model
 
 import android.net.Uri
 import androidx.compose.runtime.Stable
@@ -13,6 +13,7 @@ data class RecordModel(
   var format: String,
   var bitrate: Int,
   var sampleRate: Int,
+  var date: String,
   var size: Long,
   var id: UUID = UUID.randomUUID(),
 )

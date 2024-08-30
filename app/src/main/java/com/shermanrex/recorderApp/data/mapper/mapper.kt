@@ -5,7 +5,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import com.shermanrex.recorderApp.data.Constant.METADATA_DURATION_KEY
 import com.shermanrex.recorderApp.data.Constant.METADATA_URI_KEY
-import com.shermanrex.recorderApp.data.model.RecordModel
+import com.shermanrex.recorderApp.domain.model.RecordModel
 
 fun RecordModel.toMediaItem(): MediaItem {
   return MediaItem.Builder()

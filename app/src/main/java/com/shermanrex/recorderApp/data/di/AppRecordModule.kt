@@ -1,4 +1,4 @@
-package com.shermanrex.recorderApp.domain.di
+package com.shermanrex.recorderApp.data.di
 
 import android.content.Context
 import androidx.datastore.core.DataStore
