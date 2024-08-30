@@ -1,5 +1,6 @@
 package com.shermanrex.recorderApp.data.util
 
+import android.util.Log
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -13,7 +14,7 @@ import java.util.Date
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 
-fun Int?.convertMilliSecondToTime(showMilliSecond: Boolean = true): String {
+fun <T : Number> T?.convertMilliSecondToTime(showMilliSecond: Boolean = true): String {
   if (this == null) return "00:00"
 
   val minute = TimeUnit.MILLISECONDS.toMinutes(this.toLong()) % 60

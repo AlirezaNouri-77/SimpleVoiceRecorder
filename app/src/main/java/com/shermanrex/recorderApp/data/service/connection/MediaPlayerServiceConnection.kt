@@ -9,14 +9,17 @@ import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.shermanrex.recorderApp.data.mapper.toMediaItem
-import com.shermanrex.recorderApp.data.model.RecordModel
-import com.shermanrex.recorderApp.data.model.uiState.CurrentMediaPlayerState
+import com.shermanrex.recorderApp.domain.model.RecordModel
+import com.shermanrex.recorderApp.domain.model.uiState.CurrentMediaPlayerState
 import com.shermanrex.recorderApp.data.service.MediaPlayerService
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class MediaPlayerServiceConnection @Inject constructor(var context: Context) {
@@ -25,12 +28,12 @@ class MediaPlayerServiceConnection @Inject constructor(var context: Context) {
   private var mediaController: MediaController? = null
   private lateinit var playerStateListener: Player.Listener
 
-  private var _mediaPlayerState = MutableStateFlow(CurrentMediaPlayerState())
-  var mediaPlayerState = _mediaPlayerState.asStateFlow()
-
   init {
     initialListener()
   }
+
+  private var _mediaPlayerState = MutableStateFlow(CurrentMediaPlayerState())
+  var mediaPlayerState = _mediaPlayerState.asStateFlow()
 
   var currentPosition = flow {
     while (true) {
@@ -93,10 +96,7 @@ class MediaPlayerServiceConnection @Inject constructor(var context: Context) {
 
       override fun onPlaybackStateChanged(playbackState: Int) {
         when (playbackState) {
-          Player.STATE_IDLE or Player.STATE_ENDED -> _mediaPlayerState.update {
-            it.copy(isPlaying = false)
-          }
-
+          Player.STATE_IDLE or Player.STATE_ENDED -> _mediaPlayerState.update { it.copy(isPlaying = false) }
           Player.STATE_BUFFERING -> _mediaPlayerState.update { it.copy(isPlaying = true) }
           else -> {}
         }

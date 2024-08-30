@@ -10,7 +10,7 @@ import android.provider.DocumentsContract
 import android.util.Log
 import androidx.core.net.toUri
 import androidx.documentfile.provider.DocumentFile
-import com.shermanrex.recorderApp.data.model.RecordModel
+import com.shermanrex.recorderApp.domain.model.RecordModel
 import com.shermanrex.recorderApp.data.util.getFileFormat
 import com.shermanrex.recorderApp.data.util.removeFileformat
 import com.shermanrex.recorderApp.domain.StorageManagerImpl
@@ -30,11 +30,8 @@ class StorageManager @Inject constructor(
     return fileDescriptor
   }
 
-  override fun createDocumentFile(fileName: String, savePath: String): DocumentFile? {
-    val document = DocumentFile.fromTreeUri(
-      context,
-      Uri.parse(savePath)
-    )
+  override suspend fun createDocumentFile(fileName: String, savePath: String): DocumentFile? {
+    val document = DocumentFile.fromTreeUri(context, Uri.parse(savePath))
     return document?.createFile("audio/*", fileName)
   }
 
@@ -49,7 +46,7 @@ class StorageManager @Inject constructor(
     DocumentsContract.renameDocument(context.contentResolver, uri, newName) ?: Uri.EMPTY
   }
 
-  suspend fun getRenameRecordName(uri: Uri): String {
+  override suspend fun getRenameRecordName(uri: Uri): String {
     return withContext(Dispatchers.IO) {
       val document = DocumentFile.fromSingleUri(context, uri)
       return@withContext document?.name.toString()
@@ -64,30 +61,34 @@ class StorageManager @Inject constructor(
 
     return withContext(Dispatchers.IO) {
       mediaMeta.setDataSource(context, document?.uri)
-      val duration =
-        mediaMeta.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toInt() ?: 0
-      val bitrate = mediaMeta.extractMetadata(
-        MediaMetadataRetriever.METADATA_KEY_BITRATE
-      )?.toInt() ?: 0
-      val sampleRate = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-        mediaMeta.extractMetadata(MediaMetadataRetriever.METADATA_KEY_SAMPLERATE)
-          ?.toInt() ?: 0
-      } else {
-        0
+
+      mediaMeta.use {
+
+        val duration = mediaMeta.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toInt() ?: 0
+        val date = mediaMeta.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DATE) ?: ""
+        val bitrate = mediaMeta.extractMetadata(MediaMetadataRetriever.METADATA_KEY_BITRATE)?.toInt() ?: 0
+        val sampleRate = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+          mediaMeta.extractMetadata(MediaMetadataRetriever.METADATA_KEY_SAMPLERATE)
+            ?.toInt() ?: 0
+        } else 0
+
+        return@withContext if (duration > 500 && document != null) {
+          RecordModel(
+            path = document.uri,
+            fullName = document.name!!,
+            name = document.name!!.removeFileformat(),
+            format = document.name!!.getFileFormat(),
+            duration = duration,
+            bitrate = bitrate,
+            date = date,
+            size = document.length(),
+            sampleRate = sampleRate,
+          )
+        } else null
+
       }
-      return@withContext if (duration > 500 && document != null) {
-        RecordModel(
-          path = document.uri,
-          fullName = document.name!!,
-          name = document.name!!.removeFileformat(),
-          format = document.name!!.getFileFormat(),
-          duration = duration,
-          bitrate = bitrate,
-          size = document.length(),
-          sampleRate = sampleRate,
-        )
-      } else null
     }
+
   }
 
 }
