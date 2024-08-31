@@ -10,7 +10,7 @@ interface StorageManagerImpl {
   suspend fun deleteRecord(uri: Uri)
   suspend fun createDocumentFile(fileName: String, savePath: String): DocumentFile?
   suspend fun renameRecord(uri: Uri, newName: String): Uri
-//  suspend fun appendFileExtension(uri: Uri, fileFormat: String): Uri
+  suspend fun appendFileExtension(uri: Uri, fileFormat: String): Uri
   suspend fun getFileDetailByMediaMetaRetriever(document: DocumentFile?): RecordModel?
   suspend fun getRenameRecordName(uri: Uri): String
 }

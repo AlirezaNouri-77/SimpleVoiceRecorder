@@ -19,6 +19,8 @@ import dagger.hilt.android.scopes.ServiceScoped
 import javax.inject.Qualifier
 import javax.inject.Singleton
 
+@Qualifier
+annotation class ServiceModuleQualifier
 
 @Module
 @InstallIn(ServiceComponent::class)
@@ -29,6 +31,23 @@ object ServiceModule {
   fun provideNotificationManager(@ApplicationContext context: Context): MyNotificationManager {
     return MyNotificationManager(context)
   }
+
+  @Provides
+  @ServiceScoped
+  @ServiceModuleQualifier
+  fun provideDataStore(@ApplicationContext context: Context): DataStore<Preferences> {
+    return PreferenceDataStoreFactory.create(
+      produceFile = { context.preferencesDataStoreFile("settings") }
+    )
+  }
+
+  @Provides
+  @ServiceScoped
+  @ServiceModuleQualifier
+  fun provideStorageManager(@ApplicationContext context: Context): StorageManager {
+    return StorageManager(context = context)
+  }
+
   @Provides
   @ServiceScoped
   fun provideMediaRecorder(@ApplicationContext context: Context): MediaRecorder {

@@ -1,6 +1,7 @@
 package com.shermanrex.recorderApp.presentation.screen.recorder
 
 import android.net.Uri
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
@@ -12,6 +13,12 @@ import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.shermanrex.recorderApp.data.dataStore.DataStoreManager
+import com.shermanrex.recorderApp.data.repository.RecordRepository
+import com.shermanrex.recorderApp.data.service.connection.MediaPlayerServiceConnection
+import com.shermanrex.recorderApp.data.service.connection.MediaRecorderServiceConnection
+import com.shermanrex.recorderApp.data.storage.StorageManager
+import com.shermanrex.recorderApp.data.util.convertTimeStampToDate
+import com.shermanrex.recorderApp.data.util.removeFileformat
 import com.shermanrex.recorderApp.domain.model.AudioFormat
 import com.shermanrex.recorderApp.domain.model.DropDownMenuStateUi
 import com.shermanrex.recorderApp.domain.model.RecordAudioSetting
@@ -22,21 +29,15 @@ import com.shermanrex.recorderApp.domain.model.SettingNameFormat
 import com.shermanrex.recorderApp.domain.model.notification.ServiceActionNotification
 import com.shermanrex.recorderApp.domain.model.uiState.CurrentMediaPlayerState
 import com.shermanrex.recorderApp.domain.model.uiState.RecorderScreenUiState
-import com.shermanrex.recorderApp.data.repository.RecordRepository
-import com.shermanrex.recorderApp.data.service.connection.MediaPlayerServiceConnection
-import com.shermanrex.recorderApp.data.service.connection.MediaRecorderServiceConnection
-import com.shermanrex.recorderApp.data.storage.StorageManager
-import com.shermanrex.recorderApp.data.util.convertTimeStampToDate
-import com.shermanrex.recorderApp.data.util.removeFileformat
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -68,8 +69,6 @@ class AppRecorderViewModel @Inject constructor(
   var showRenameDialog by mutableStateOf(false)
 
   var dropDownMenuState by mutableStateOf(DropDownMenuStateUi.Empty)
-  var lazyListContentPaddingBottom by mutableStateOf(0.dp)
-  var lazyListContentPaddingTop by mutableStateOf(0.dp)
   var showSettingBottomSheet by mutableStateOf(false)
   var showNamePickerDialog by mutableStateOf(false)
   var savePathNotFound by mutableStateOf(false)
@@ -120,17 +119,17 @@ class AppRecorderViewModel @Inject constructor(
 
   fun renameRecord(targetItem: RecordModel, newName: String) {
     viewModelScope.launch {
-      val name = newName + ".${targetItem.format}"
-      val result = storageManager.renameRecord(targetItem.path, name)
-      if (result != Uri.EMPTY) {
-        val nameAfterRename = storageManager.getRenameRecordName(result)
-        val targetItemIndex = recordDataList.indexOf(targetItem)
-        val updateRecord = recordDataList[targetItemIndex].copy(
-          path = result,
-          name = nameAfterRename.removeFileformat()
-        )
-        recordDataList.set(index = targetItemIndex, element = updateRecord)
-      }
+      val renameUri = storageManager.renameRecord(targetItem.path, newName)
+      val result = storageManager.appendFileExtension(renameUri,targetItem.format)
+      if (result == Uri.EMPTY) return@launch
+
+      val nameAfterRename = storageManager.getRenameRecordName(result)
+      val targetItemIndex = recordDataList.indexOf(targetItem)
+      val updateRecord = recordDataList[targetItemIndex].copy(
+        path = result,
+        name = nameAfterRename.removeFileformat()
+      )
+      recordDataList.set(index = targetItemIndex, element = updateRecord)
     }
   }
 
@@ -142,7 +141,7 @@ class AppRecorderViewModel @Inject constructor(
       val nameFormat = dataStoreManager.getNameFormat.first()
       val audioRecordSetting = dataStoreManager.getAudioFormat.first()
 
-      val fileName = customFileName.ifEmpty { convertTimeStampToDate(nameFormat.pattern) } + ".${audioRecordSetting.format.name}"
+      val fileName = customFileName.ifEmpty { convertTimeStampToDate(nameFormat.pattern) }
       val document = storageManager.createDocumentFile(fileName = fileName, savePath = savePath)
 
       if (document != null) {
@@ -161,15 +160,7 @@ class AppRecorderViewModel @Inject constructor(
   }
 
 
-  fun stopRecord() {
-    serviceConnection.mService.stopRecord()
-    viewModelScope.launch {
-      amplitudesList.clear()
-      recordRepository.getLastRecord(serviceConnection.mService.currentRecordFileUri).await()
-        ?.let { recordDataList.add(0, it) }
-      if (recordDataList.size != 0) screenRecorderScreenUiState.value = RecorderScreenUiState.DATA
-    }
-  }
+  fun stopRecord() = serviceConnection.mService.stopRecord()
 
   fun writeDataStoreSavePath(savePath: String) = viewModelScope.launch(Dispatchers.IO) {
     dataStoreManager.writeSavePath(savePath)
@@ -259,6 +250,13 @@ class AppRecorderViewModel @Inject constructor(
             viewModelScope.launch {
               recorderState = recordState
             }
+          }
+        }
+        launch {
+          serviceConnection.mService.playerEndChannel.consumeAsFlow().collectLatest { uri ->
+            recordRepository.getLastRecord(uri).await()?.let { recordDataList.add(0, it) }
+            if (recordDataList.size != 0) screenRecorderScreenUiState.value = RecorderScreenUiState.DATA
+            amplitudesList.clear()
           }
         }
       }

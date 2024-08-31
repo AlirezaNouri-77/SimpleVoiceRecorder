@@ -20,6 +20,7 @@ import com.shermanrex.recorderApp.presentation.notification.MyNotificationManage
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -40,9 +41,17 @@ class MediaRecorderService : LifecycleService() {
   @Inject
   lateinit var mediaRecorder: MediaRecorder
 
-  var currentRecordFileUri: Uri = Uri.EMPTY
+  @Inject
+  lateinit var storageManager: StorageManager
+
+  @Inject
+  lateinit var dataStoreManager: DataStoreManager
+
+  private var currentRecordFileUri: Uri = Uri.EMPTY
   private var startRecordTimeStamp = 0L
   private var currentTimer = 0
+
+  var playerEndChannel = Channel<Uri>()
 
   private var _recorderState = MutableStateFlow(RecorderState.IDLE)
   val recorderState = _recorderState.asStateFlow()
@@ -84,10 +93,8 @@ class MediaRecorderService : LifecycleService() {
     super.onStartCommand(intent, flags, startId)
 
     when (intent?.action) {
-      ServiceActionNotification.STOP.toString() -> {
-        stopRecord()
-        stopForeground(STOP_FOREGROUND_DETACH)
-      }
+
+      ServiceActionNotification.STOP.toString() -> stopRecord()
 
       ServiceActionNotification.PAUSE.toString() -> pauseRecord()
 
@@ -146,13 +153,18 @@ class MediaRecorderService : LifecycleService() {
   }
 
   fun stopRecord() {
-    if (recorderState.value == RecorderState.RECORDING || recorderState.value == RecorderState.PAUSE) {
-      setRecordState(RecorderState.STOP)
-      mediaRecorder.stop()
-      mediaRecorder.reset()
-      myNotificationManager.setStopRecordNotification(_recordTimer.value)
-      _recordTimer.value = 0
-      currentTimer = 0
+    if (recorderState.value == RecorderState.STOP || recorderState.value == RecorderState.IDLE) return
+    mediaRecorder.stop()
+    mediaRecorder.reset()
+    setRecordState(RecorderState.STOP)
+    stopForeground(STOP_FOREGROUND_DETACH)
+    myNotificationManager.setStopRecordNotification(_recordTimer.value)
+    _recordTimer.value = 0
+    currentTimer = 0
+    lifecycleScope.launch {
+      val format = dataStoreManager.getAudioFormat.first().format.name
+      val newUri = storageManager.appendFileExtension(currentRecordFileUri, format)
+      playerEndChannel.send(newUri)
     }
   }
 
@@ -169,11 +181,11 @@ class MediaRecorderService : LifecycleService() {
     if (recorderState.value == RecorderState.RECORDING) {
       mediaRecorder.pause()
       currentTimer = _recordTimer.value
+      setRecordState(RecorderState.PAUSE)
+      myNotificationManager.updatePauseAndResumeNotification(
+        recorderState = _recorderState.value,
+      )
     }
-    setRecordState(RecorderState.PAUSE)
-    myNotificationManager.updatePauseAndResumeNotification(
-      recorderState = _recorderState.value,
-    )
   }
 
   private fun setRecordState(recordState: RecorderState) {

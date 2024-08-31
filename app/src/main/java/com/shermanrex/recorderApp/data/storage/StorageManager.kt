@@ -31,8 +31,10 @@ class StorageManager @Inject constructor(
   }
 
   override suspend fun createDocumentFile(fileName: String, savePath: String): DocumentFile? {
-    val document = DocumentFile.fromTreeUri(context, Uri.parse(savePath))
-    return document?.createFile("audio/*", fileName)
+    return withContext(Dispatchers.IO) {
+      val document = DocumentFile.fromTreeUri(context, Uri.parse(savePath))
+      document?.createFile("audio/*", fileName)
+    }
   }
 
   override suspend fun deleteRecord(uri: Uri) {
@@ -44,6 +46,14 @@ class StorageManager @Inject constructor(
 
   override suspend fun renameRecord(uri: Uri, newName: String): Uri = withContext(Dispatchers.IO) {
     DocumentsContract.renameDocument(context.contentResolver, uri, newName) ?: Uri.EMPTY
+  }
+
+  override suspend fun appendFileExtension(uri: Uri, fileFormat: String): Uri {
+    return withContext(Dispatchers.IO){
+      val targetFileName = DocumentFile.fromSingleUri(context, uri)?.name ?: ""
+      val newNameWithExtension = targetFileName + ".${fileFormat}"
+      DocumentsContract.renameDocument(context.contentResolver, uri, newNameWithExtension) ?: Uri.EMPTY
+    }
   }
 
   override suspend fun getRenameRecordName(uri: Uri): String {
