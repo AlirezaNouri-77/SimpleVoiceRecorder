@@ -8,9 +8,13 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Box
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.media3.common.MediaMetadata
 import com.shermanrex.recorderApp.domain.model.RecorderState
 import com.shermanrex.recorderApp.domain.model.uiState.CurrentMediaPlayerState
@@ -35,27 +39,40 @@ fun BottomSection(
   currentPosition: () -> Long,
 ) {
 
+  val gradientColor = MaterialTheme.colorScheme.primary
+
   Box(
-    modifier = modifier,
+    modifier = modifier
+      .drawWithCache {
+        onDrawBehind {
+          this.drawContext
+          drawRect(
+            brush = Brush.verticalGradient(
+              0.4f to Color.Transparent,
+              1f to gradientColor,
+            )
+          )
+        }
+      },
     contentAlignment = Alignment.Center,
   ) {
     AnimatedContent(
       targetState = currentPlayerState().mediaMetadata != MediaMetadata.EMPTY,
       transitionSpec = {
-        fadeIn(tween(150))
+        fadeIn(tween(50))
           .plus(
             slideIntoContainer(
               towards = AnimatedContentTransitionScope.SlideDirection.Up,
-              animationSpec = tween(150, 50)
+              animationSpec = tween(100, 50)
             )
           )
           .togetherWith(
-            fadeOut(tween(100))
+            slideOutOfContainer(
+              towards = AnimatedContentTransitionScope.SlideDirection.Down,
+              animationSpec = tween(100, 50)
+            )
               .plus(
-                slideOutOfContainer(
-                  towards = AnimatedContentTransitionScope.SlideDirection.Down,
-                  animationSpec = tween(50, 50)
-                )
+                fadeOut(tween(50))
               )
           )
       },
@@ -63,30 +80,28 @@ fun BottomSection(
       contentAlignment = Alignment.Center,
     ) { targetState ->
       when (targetState) {
-        true -> {
-          Player(
-            onResumePlayClick = { onResumePlayClick() },
-            onPausePlayClick = { onPausePlayClick() },
-            onFastForwardClick = { onFastForwardClick() },
-            onFastBackwardClick = { onFastBackwardClick() },
-            onDeleteClick = { onDeleteClick(it) },
-            onShareClick = { onShareClick(it) },
-            onClosePlayer = { onClosePlayer() },
-            onSliderValueChange = { onSliderValueChange(it) },
-            currentPosition = { currentPosition() },
-            currentPlayerState = { currentPlayerState() }
-          )
-        }
 
-        else -> {
-          Recorder(
-            recorderState = { recorderState() },
-            onPauseRecordClick = { onPauseRecordClick() },
-            onStopRecordClick = { onStopRecordClick() },
-            onStartRecordClick = { onStartRecordClick() },
-            onResumeRecordClick = { onResumeRecordClick() }
-          )
-        }
+        true -> Player(
+          onResumePlayClick = { onResumePlayClick() },
+          onPausePlayClick = { onPausePlayClick() },
+          onFastForwardClick = { onFastForwardClick() },
+          onFastBackwardClick = { onFastBackwardClick() },
+          onDeleteClick = { onDeleteClick(it) },
+          onShareClick = { onShareClick(it) },
+          onClosePlayer = { onClosePlayer() },
+          onSliderValueChange = { onSliderValueChange(it) },
+          currentPosition = { currentPosition() },
+          currentPlayerState = { currentPlayerState() }
+        )
+
+        else -> Recorder(
+          recorderState = { recorderState() },
+          onPauseRecordClick = { onPauseRecordClick() },
+          onStopRecordClick = { onStopRecordClick() },
+          onStartRecordClick = { onStartRecordClick() },
+          onResumeRecordClick = { onResumeRecordClick() }
+        )
+
       }
 
     }

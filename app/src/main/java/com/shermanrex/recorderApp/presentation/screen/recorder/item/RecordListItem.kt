@@ -40,7 +40,7 @@ fun RecordListItem(
   onLongItemClick: (Int) -> Unit,
 ) {
 
-  val animateColor =
+  val selectedColor =
     if (currentItemIndex == itemIndex) MaterialTheme.colorScheme.primary.copy(alpha = 0.6f) else Color.Transparent
 
   Surface(
@@ -54,8 +54,8 @@ fun RecordListItem(
         }
       )
       .fillMaxWidth(),
-    shape = RoundedCornerShape(10.dp),
-    color = animateColor,
+    shape = RoundedCornerShape(15.dp),
+    color = selectedColor,
   ) {
 
     Column(

@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -26,7 +27,11 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -77,6 +82,14 @@ fun RecorderScreen(
 
   val recordTimer = viewModel.recordTime.collectAsStateWithLifecycle().value
 
+  var lazyListBottomPadding by remember { mutableStateOf(0.dp) }
+  var lazyListTopPadding by remember { mutableStateOf(0.dp) }
+
+  val centerIndicatorVisibility = remember(viewModel.screenRecorderScreenUiState.value) {
+    viewModel.screenRecorderScreenUiState.value == RecorderScreenUiState.EMPTY ||
+         viewModel.screenRecorderScreenUiState.value == RecorderScreenUiState.LOADING
+  }
+
   LifecycleEventEffect(event = Lifecycle.Event.ON_START) {
     scope.launch {
       viewModel.serviceConnection.bindService()
@@ -111,7 +124,7 @@ fun RecorderScreen(
   )
 
 
-  if(viewModel.showDeleteDialog) {
+  if (viewModel.showDeleteDialog) {
     DeleteDialog(
       item = viewModel.recordDataList[viewModel.dropDownMenuState.itemIndex],
       onDismiss = { viewModel.showDeleteDialog = false },
@@ -122,7 +135,7 @@ fun RecorderScreen(
     )
   }
 
-  if(viewModel.showSettingBottomSheet) {
+  if (viewModel.showSettingBottomSheet) {
     Setting(
       sheetSate = sheetState,
       recorderState = viewModel.recorderState,
@@ -154,7 +167,7 @@ fun RecorderScreen(
     )
   }
 
-  if(viewModel.showRenameDialog) {
+  if (viewModel.showRenameDialog) {
     val currentItem = viewModel.recordDataList[viewModel.dropDownMenuState.itemIndex]
     DialogNamePicker(
       title = "Rename",
@@ -170,7 +183,7 @@ fun RecorderScreen(
     )
   }
 
-  if(viewModel.savePathNotFound) {
+  if (viewModel.savePathNotFound) {
     AlertDialog(
       title = { Text(text = "Save Path not found") },
       text = { Text(text = "cant start record because save path not found please go in app setting and choose save path") },
@@ -190,7 +203,7 @@ fun RecorderScreen(
     )
   }
 
-  if(viewModel.showNamePickerDialog) {
+  if (viewModel.showNamePickerDialog) {
     DialogNamePicker(
       title = "Record",
       label = "Enter a name",
@@ -231,7 +244,7 @@ fun RecorderScreen(
         .fillMaxSize(),
     ) {
 
-      val (topSection, recordsControlRef, bottomGradient, recordLazyList, centerIndicatorText) = createRefs()
+      val (topSection, recordsControlRef, recordLazyList, centerIndicatorText) = createRefs()
 
       Crossfade(
         modifier = Modifier
@@ -250,8 +263,10 @@ fun RecorderScreen(
           state = lazyListState,
           horizontalAlignment = Alignment.CenterHorizontally,
           contentPadding = PaddingValues(
-            bottom = viewModel.lazyListContentPaddingBottom,
-            top = viewModel.lazyListContentPaddingTop,
+            bottom = lazyListBottomPadding,
+            top = lazyListTopPadding,
+            start = 8.dp,
+            end = 8.dp,
           ),
         ) {
           when (state) {
@@ -282,9 +297,6 @@ fun RecorderScreen(
         }
       }
 
-      val centerIndicatorVisibility =
-        viewModel.screenRecorderScreenUiState.value == RecorderScreenUiState.EMPTY ||
-             viewModel.screenRecorderScreenUiState.value == RecorderScreenUiState.LOADING
 
       AnimatedVisibility(
         visible = centerIndicatorVisibility,
@@ -320,7 +332,7 @@ fun RecorderScreen(
           }
           .onGloballyPositioned {
             with(density) {
-              viewModel.lazyListContentPaddingTop = it.size.height.toDp() + 15.dp
+              lazyListTopPadding = it.size.height.toDp() + 15.dp
             }
           },
         amplitudesList = { viewModel.amplitudesList },
@@ -329,23 +341,6 @@ fun RecorderScreen(
         currentAudioSetting = viewModel.currentAudioFormat,
         onSettingClick = { viewModel.showSettingBottomSheet = true },
       )
-
-      Box(
-        modifier = Modifier
-          .fillMaxWidth()
-          .height(viewModel.lazyListContentPaddingBottom / 1.5f)
-          .constrainAs(bottomGradient) {
-            end.linkTo(parent.end)
-            start.linkTo(parent.start)
-            bottom.linkTo(parent.bottom)
-          }
-          .background(
-            brush = Brush.verticalGradient(
-              0.2f to Color.Transparent,
-              1f to MaterialTheme.colorScheme.primary,
-            )
-          ),
-      ) {}
 
       BottomSection(
         modifier = Modifier
@@ -356,7 +351,7 @@ fun RecorderScreen(
           }
           .onGloballyPositioned {
             with(density) {
-              viewModel.lazyListContentPaddingBottom = it.size.height.toDp()
+              lazyListBottomPadding = it.size.height.toDp()
             }
           },
         recorderState = { viewModel.recorderState },
