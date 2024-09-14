@@ -32,7 +32,7 @@ fun FormatSection(
           selected = item == currentItem.format,
           onClick = { if (item != currentItem.format) onItemClick(item) },
           colors = FilterChipDefaults.filterChipColors(
-            containerColor = MaterialTheme.colorScheme.background,
+            containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 1f),
             selectedContainerColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.05f),
           ),
           border = BorderStroke(0.dp, Color.Transparent),

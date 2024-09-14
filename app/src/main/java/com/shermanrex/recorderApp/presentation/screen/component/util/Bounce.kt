@@ -1,4 +1,4 @@
-package com.shermanrex.presentation.screen.component.util
+package com.shermanrex.recorderApp.presentation.screen.component.util
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.clickable
@@ -24,7 +24,7 @@ fun Modifier.bounce(): Modifier {
       buttonState.value = ButtonState.Idle
     },
   )
-  return this then graphicsLayer {
+  return this then Modifier.graphicsLayer {
     this.scaleX = scale
     this.scaleY = scale
   }

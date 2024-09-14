@@ -4,11 +4,9 @@ import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -50,7 +48,7 @@ fun Setting(
   sheetSate: SheetState,
   recorderState: RecorderState,
   currentAudioFormat: RecordAudioSetting,
-  onNewSavePath: (Uri) -> Unit,
+  onPathClick: () -> Unit,
   onNameFormatClick: (SettingNameFormat) -> Unit,
   onAudioFormatClick: (AudioFormat) -> Unit,
   onAudioBitRateClick: (Int) -> Unit,
@@ -81,7 +79,6 @@ fun Setting(
     shape = RoundedCornerShape(topEnd = 25.dp, topStart = 25.dp),
     containerColor = MaterialTheme.colorScheme.background,
     contentColor = MaterialTheme.colorScheme.onPrimary,
-    windowInsets = WindowInsets(bottom = 0.dp, top = 0.dp),
   ) {
     BottomSheetContent(
       currentFileName = currentFileName,
@@ -94,10 +91,7 @@ fun Setting(
       onAudioFormatClick = { onAudioFormatClick(it) },
       onAudioBitRateClick = { onAudioBitRateClick(it) },
       onAudioSampleRateClick = { onAudioSampleRateClick(it) },
-      onNewSavePath = {
-        onNewSavePath(it)
-        currentSavePath = it
-      },
+      onPathClick = { onPathClick() },
       recorderState = recorderState,
     )
   }
@@ -115,7 +109,7 @@ fun BottomSheetContent(
   onAudioFormatClick: (AudioFormat) -> Unit,
   onAudioBitRateClick: (Int) -> Unit,
   onAudioSampleRateClick: (Int) -> Unit,
-  onNewSavePath: (Uri) -> Unit,
+  onPathClick: () -> Unit,
 ) {
   Surface(
     modifier = modifier
@@ -153,8 +147,8 @@ fun BottomSheetContent(
       )
       SavePathSection(
         recorderState = recorderState,
-        savePath = { currentSavePath },
-        onSavePath = { onNewSavePath(it) },
+        currentSavePath = currentSavePath,
+        onPathClick = { onPathClick() },
       )
     }
   }
@@ -181,7 +175,7 @@ private fun Preview() {
       onAudioFormatClick = {},
       onAudioBitRateClick = {},
       onAudioSampleRateClick = {},
-      onNewSavePath = {},
+      onPathClick = {},
       recorderState = RecorderState.IDLE,
     )
   }

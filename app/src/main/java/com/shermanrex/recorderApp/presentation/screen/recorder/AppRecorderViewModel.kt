@@ -1,14 +1,12 @@
 package com.shermanrex.recorderApp.presentation.screen.recorder
 
 import android.net.Uri
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -21,6 +19,7 @@ import com.shermanrex.recorderApp.data.util.convertTimeStampToDate
 import com.shermanrex.recorderApp.data.util.removeFileformat
 import com.shermanrex.recorderApp.domain.model.AudioFormat
 import com.shermanrex.recorderApp.domain.model.DropDownMenuStateUi
+import com.shermanrex.recorderApp.domain.model.Failure
 import com.shermanrex.recorderApp.domain.model.RecordAudioSetting
 import com.shermanrex.recorderApp.domain.model.RecordModel
 import com.shermanrex.recorderApp.domain.model.RecorderState
@@ -28,15 +27,18 @@ import com.shermanrex.recorderApp.domain.model.RepositoryResult
 import com.shermanrex.recorderApp.domain.model.SettingNameFormat
 import com.shermanrex.recorderApp.domain.model.notification.ServiceActionNotification
 import com.shermanrex.recorderApp.domain.model.uiState.CurrentMediaPlayerState
+import com.shermanrex.recorderApp.domain.model.uiState.RecorderScreenUiEvent
 import com.shermanrex.recorderApp.domain.model.uiState.RecorderScreenUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -57,6 +59,9 @@ class AppRecorderViewModel @Inject constructor(
 
   var currentAudioFormat by mutableStateOf(RecordAudioSetting.Empty)
 
+  private var _uiEvent = MutableSharedFlow<RecorderScreenUiEvent>()
+  var uiEvent = _uiEvent.asSharedFlow()
+
   private var _recordTime = MutableStateFlow(0)
   var recordTime = _recordTime.asStateFlow()
 
@@ -65,13 +70,10 @@ class AppRecorderViewModel @Inject constructor(
   var mediaPlayerState by mutableStateOf(CurrentMediaPlayerState.Empty)
   var currentPlayerPosition by mutableFloatStateOf(0f)
 
-  var showDeleteDialog by mutableStateOf(false)
-  var showRenameDialog by mutableStateOf(false)
-
   var dropDownMenuState by mutableStateOf(DropDownMenuStateUi.Empty)
   var showSettingBottomSheet by mutableStateOf(false)
-  var showNamePickerDialog by mutableStateOf(false)
-  var savePathNotFound by mutableStateOf(false)
+
+  // var showNamePickerDialog by mutableStateOf(false)
   var currentIndexClick by mutableIntStateOf(-1)
 
   init {
@@ -86,7 +88,6 @@ class AppRecorderViewModel @Inject constructor(
 
   suspend fun getDataStoreSavePath(): String = dataStoreManager.getSavePath.first()
 
-
   fun writeAudioBitrate(bitrate: Int) = viewModelScope.launch(Dispatchers.IO) {
     dataStoreManager.writeAudioBitrate(bitrate)
   }
@@ -100,7 +101,6 @@ class AppRecorderViewModel @Inject constructor(
   fun writeSampleRate(sampleRate: Int) = viewModelScope.launch(Dispatchers.IO) {
     dataStoreManager.writeSampleRate(sampleRate)
   }
-
 
   fun writeDataStoreNameFormat(nameFormat: SettingNameFormat) {
     viewModelScope.launch {
@@ -120,7 +120,7 @@ class AppRecorderViewModel @Inject constructor(
   fun renameRecord(targetItem: RecordModel, newName: String) {
     viewModelScope.launch {
       val renameUri = storageManager.renameRecord(targetItem.path, newName)
-      val result = storageManager.appendFileExtension(renameUri,targetItem.format)
+      val result = storageManager.appendFileExtension(renameUri, targetItem.format)
       if (result == Uri.EMPTY) return@launch
 
       val nameAfterRename = storageManager.getRenameRecordName(result)
@@ -147,6 +147,7 @@ class AppRecorderViewModel @Inject constructor(
       if (document != null) {
         val fileDescriptor = storageManager.getSavePath(document)
         if (fileDescriptor != null) {
+          sendActionToService(ServiceActionNotification.START)
           serviceConnection.mService.startRecord(
             fileDescriptor = fileDescriptor,
             recordAudioSetting = audioRecordSetting,
@@ -154,7 +155,7 @@ class AppRecorderViewModel @Inject constructor(
           )
         }
       } else {
-        savePathNotFound = true
+        setUiEvent(RecorderScreenUiEvent.SAF_PATH)
       }
     }
   }
@@ -162,8 +163,9 @@ class AppRecorderViewModel @Inject constructor(
 
   fun stopRecord() = serviceConnection.mService.stopRecord()
 
-  fun writeDataStoreSavePath(savePath: String) = viewModelScope.launch(Dispatchers.IO) {
+  fun writeDataStoreSavePath(savePath: String, shouldUpdateList: Boolean = false) = viewModelScope.launch(Dispatchers.IO) {
     dataStoreManager.writeSavePath(savePath)
+    if (shouldUpdateList) getRecords()
   }
 
   fun sendActionToService(action: ServiceActionNotification) =
@@ -194,24 +196,31 @@ class AppRecorderViewModel @Inject constructor(
     currentPlayerPosition = position
   }
 
-  fun getRecords() = viewModelScope.launch {
+  private fun getRecords() = viewModelScope.launch {
     val savePath = dataStoreManager.getSavePath.first()
-    recordRepository.getRecords(savePath.toUri())
+    val documentFile = storageManager.getSavePathDocumentFile(savePath.toUri())
+
+    if (documentFile == null) {
+      setUiEvent(RecorderScreenUiEvent.SAF_PATH)
+      return@launch
+    }
+
+    recordRepository.getRecords(documentFile)
       .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), RepositoryResult.Loading)
       .collectLatest { result ->
         viewModelScope.launch {
           when (result) {
-            is RepositoryResult.ListData -> {
+            is RepositoryResult.Success -> {
               recordDataList.clear()
               recordDataList.addAll(result.data)
               screenRecorderScreenUiState.value = RecorderScreenUiState.DATA
             }
 
-            RepositoryResult.Empty -> screenRecorderScreenUiState.value =
-              RecorderScreenUiState.EMPTY
+            is RepositoryResult.Failure -> when (result.error) {
+              Failure.Empty -> screenRecorderScreenUiState.value = RecorderScreenUiState.EMPTY
+            }
 
-            RepositoryResult.Loading -> screenRecorderScreenUiState.value =
-              RecorderScreenUiState.LOADING
+            RepositoryResult.Loading -> screenRecorderScreenUiState.value = RecorderScreenUiState.LOADING
           }
         }
       }
@@ -221,6 +230,10 @@ class AppRecorderViewModel @Inject constructor(
     mediaPlayerServiceConnection.mediaPlayerState.collectLatest {
       mediaPlayerState = it
     }
+  }
+
+  fun setUiEvent(event: RecorderScreenUiEvent) = viewModelScope.launch {
+    _uiEvent.emit(event)
   }
 
   private fun initialAudioSetting() = viewModelScope.launch {
@@ -253,10 +266,12 @@ class AppRecorderViewModel @Inject constructor(
           }
         }
         launch {
-          serviceConnection.mService.playerEndChannel.consumeAsFlow().collectLatest { uri ->
-            recordRepository.getLastRecord(uri).await()?.let { recordDataList.add(0, it) }
-            if (recordDataList.size != 0) screenRecorderScreenUiState.value = RecorderScreenUiState.DATA
-            amplitudesList.clear()
+          serviceConnection.mService.playerEndChannel.receiveAsFlow().collect { uri ->
+            viewModelScope.launch {
+              recordRepository.getLastRecord(uri).await()?.let { recordDataList.add(0, it) }
+              if (recordDataList.size != 0) screenRecorderScreenUiState.value = RecorderScreenUiState.DATA
+              amplitudesList.clear()
+            }
           }
         }
       }

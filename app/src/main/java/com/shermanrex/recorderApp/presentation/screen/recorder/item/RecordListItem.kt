@@ -1,7 +1,6 @@
 package com.shermanrex.recorderApp.presentation.screen.recorder.item
 
 import android.net.Uri
-import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -22,11 +21,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.shermanrex.recorderApp.domain.model.RecordModel
 import com.shermanrex.recorderApp.data.util.convertByteToReadableSize
 import com.shermanrex.recorderApp.data.util.convertMilliSecondToTime
 import com.shermanrex.recorderApp.data.util.convertToKbps
 import com.shermanrex.recorderApp.data.util.convertToKhz
+import com.shermanrex.recorderApp.domain.model.RecordModel
 import com.shermanrex.recorderApp.presentation.ui.theme.AppRecorderTheme
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -53,7 +52,8 @@ fun RecordListItem(
           onItemClick(itemIndex)
         }
       )
-      .fillMaxWidth(),
+      .fillMaxWidth()
+      .padding(horizontal = 8.dp),
     shape = RoundedCornerShape(15.dp),
     color = selectedColor,
   ) {
@@ -72,7 +72,7 @@ fun RecordListItem(
         ) {
           Text(
             text = data.name,
-            fontSize = 14.sp,
+            fontSize = 15.sp,
             fontWeight = FontWeight.Medium,
             color = MaterialTheme.colorScheme.onPrimary,
           )

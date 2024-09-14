@@ -1,7 +1,13 @@
 package com.shermanrex.recorderApp.domain.model
 
-sealed interface RepositoryResult<out T> {
-  data object Loading : RepositoryResult<Nothing>
-  data object Empty : RepositoryResult<Nothing>
-  data class ListData<T>(var data: List<T>) : RepositoryResult<T>
+
+sealed interface RepositoryResult<out T, out E> {
+  data object Loading : RepositoryResult<Nothing, Nothing>
+  data class Failure<out E : RootFailure>(var error: RootFailure) : RepositoryResult<Nothing, E>
+  data class Success<T>(var data: List<T>) : RepositoryResult<T, Nothing>
+}
+
+sealed interface RootFailure
+enum class Failure : RootFailure {
+  Empty,
 }

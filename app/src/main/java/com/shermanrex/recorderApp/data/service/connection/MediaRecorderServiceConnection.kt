@@ -6,8 +6,8 @@ import android.content.Context.BIND_AUTO_CREATE
 import android.content.Intent
 import android.content.ServiceConnection
 import android.os.IBinder
-import com.shermanrex.recorderApp.domain.model.notification.ServiceActionNotification
 import com.shermanrex.recorderApp.data.service.MediaRecorderService
+import com.shermanrex.recorderApp.domain.model.notification.ServiceActionNotification
 import javax.inject.Inject
 import kotlin.coroutines.suspendCoroutine
 

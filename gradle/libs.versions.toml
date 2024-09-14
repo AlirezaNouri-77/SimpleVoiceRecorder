@@ -1,5 +1,5 @@
 [versions]
-agp = "8.3.2"
+agp = "8.6.0"
 constraintlayoutCompose = "1.0.1"
 datastorePreferences = "1.1.1"
 documentfile = "1.0.1"
@@ -11,12 +11,12 @@ coreKtx = "1.13.1"
 junit = "4.13.2"
 junitVersion = "1.1.5"
 espressoCore = "3.5.1"
-lifecycleRuntimeCompose = "2.7.0"
-activityCompose = "1.9.0"
-composeBom = "2024.05.00"
-lifecycleService = "2.7.0"
-media3Exoplayer = "1.3.1"
-composeRuntime = "1.6.7"
+lifecycleRuntimeCompose = "2.8.5"
+activityCompose = "1.9.2"
+composeBom = "2024.09.01"
+lifecycleService = "2.8.5"
+media3Exoplayer = "1.4.1"
+composeRuntime = "1.7.1"
 junitJupiter = "5.8.1"
 junitJunit = "4.12"
 
@@ -51,7 +51,6 @@ androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "daggerHilt" }
 hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "daggerHilt" }
 
-junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 

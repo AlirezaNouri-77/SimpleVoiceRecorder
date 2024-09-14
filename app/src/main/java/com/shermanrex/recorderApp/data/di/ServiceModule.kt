@@ -9,7 +9,6 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStoreFile
 import com.shermanrex.recorderApp.data.storage.StorageManager
 import com.shermanrex.recorderApp.presentation.notification.MyNotificationManager
-import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -17,7 +16,6 @@ import dagger.hilt.android.components.ServiceComponent
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.android.scopes.ServiceScoped
 import javax.inject.Qualifier
-import javax.inject.Singleton
 
 @Qualifier
 annotation class ServiceModuleQualifier

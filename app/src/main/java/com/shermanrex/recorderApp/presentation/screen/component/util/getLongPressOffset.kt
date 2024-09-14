@@ -1,4 +1,4 @@
-package com.shermanrex.presentation.screen.component.util
+package com.shermanrex.recorderApp.presentation.screen.component.util
 
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
@@ -11,7 +11,7 @@ import androidx.compose.ui.unit.DpOffset
 @Composable
 fun Modifier.getLongPressOffset(offset: (DpOffset) -> Unit): Modifier {
 
-  return this then pointerInput(Unit) {
+  return this then Modifier.pointerInput(Unit) {
     this.awaitEachGesture {
       val id = this.awaitFirstDown(false).id
       val long = this.awaitLongPressOrCancellation(id)

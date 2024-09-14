@@ -1,4 +1,4 @@
-package com.shermanrex.presentation.screen.recorder.component
+package com.shermanrex.recorderApp.presentation.screen.recorder.component.dialog
 
 import android.net.Uri
 import androidx.compose.foundation.layout.Arrangement

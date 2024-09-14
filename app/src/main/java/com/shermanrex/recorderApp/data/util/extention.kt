@@ -1,6 +1,5 @@
 package com.shermanrex.recorderApp.data.util
 
-import android.util.Log
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString

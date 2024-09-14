@@ -13,4 +13,5 @@ interface StorageManagerImpl {
   suspend fun appendFileExtension(uri: Uri, fileFormat: String): Uri
   suspend fun getFileDetailByMediaMetaRetriever(document: DocumentFile?): RecordModel?
   suspend fun getRenameRecordName(uri: Uri): String
+  suspend fun getSavePathDocumentFile(uri: Uri): DocumentFile?
 }

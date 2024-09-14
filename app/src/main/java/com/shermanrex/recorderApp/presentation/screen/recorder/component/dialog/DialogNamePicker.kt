@@ -1,4 +1,4 @@
-package com.shermanrex.presentation.screen.recorder.component
+package com.shermanrex.recorderApp.presentation.screen.recorder.component.dialog
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -60,7 +60,8 @@ fun DialogNamePicker(
       modifier = modifier.fillMaxWidth(0.9f),
       shape = RoundedCornerShape(10.dp),
       colors = CardDefaults.cardColors(
-        containerColor = MaterialTheme.colorScheme.background,
+        contentColor = MaterialTheme.colorScheme.onPrimary,
+        containerColor = MaterialTheme.colorScheme.primary,
       ),
     ) {
       Column(
@@ -93,10 +94,10 @@ fun DialogNamePicker(
             focusedTextColor = MaterialTheme.colorScheme.onPrimary,
             unfocusedLabelColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.5f),
             focusedLabelColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.5f),
-            focusedContainerColor = MaterialTheme.colorScheme.primary,
+            focusedContainerColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f),
+            unfocusedContainerColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f),
             focusedIndicatorColor = Color.Transparent,
             unfocusedIndicatorColor = Color.Transparent,
-            unfocusedContainerColor = MaterialTheme.colorScheme.primary,
             cursorColor = MaterialTheme.colorScheme.onPrimary,
           ),
         )

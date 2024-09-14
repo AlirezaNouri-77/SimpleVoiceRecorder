@@ -3,10 +3,11 @@ package com.shermanrex.recorderApp.data.repository
 import android.content.Context
 import android.net.Uri
 import androidx.documentfile.provider.DocumentFile
-import com.shermanrex.recorderApp.domain.model.RecordModel
-import com.shermanrex.recorderApp.domain.model.RepositoryResult
 import com.shermanrex.recorderApp.data.storage.StorageManager
 import com.shermanrex.recorderApp.domain.RecordRepositoryImpl
+import com.shermanrex.recorderApp.domain.model.Failure
+import com.shermanrex.recorderApp.domain.model.RecordModel
+import com.shermanrex.recorderApp.domain.model.RepositoryResult
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -24,10 +25,12 @@ class RecordRepository @Inject constructor(
 ) : RecordRepositoryImpl {
 
   @OptIn(ExperimentalCoroutinesApi::class)
-  override suspend fun getRecords(directoryPath: Uri): Flow<RepositoryResult<RecordModel>> {
+  override suspend fun getRecords(documentFile: DocumentFile): Flow<RepositoryResult<RecordModel, Failure>> {
     return channelFlow {
-      val documentFileUri = DocumentFile.fromTreeUri(context, directoryPath)
-      val result = documentFileUri?.listFiles()?.map { document ->
+
+      send(RepositoryResult.Loading)
+
+      val result = documentFile.listFiles().map { document ->
         async {
           if (document.canRead() && document.length() > 0) {
             storageManager.getFileDetailByMediaMetaRetriever(
@@ -35,12 +38,12 @@ class RecordRepository @Inject constructor(
             )
           } else null
         }
-      }?.awaitAll()?.filterNotNull()?.sortedByDescending { it.date } ?: emptyList()
+      }.awaitAll().filterNotNull().sortedByDescending { it.date }
 
       if (result.isNotEmpty()) {
-        send(RepositoryResult.ListData(result))
+        send(RepositoryResult.Success(result))
       } else {
-        send(RepositoryResult.Empty)
+        send(RepositoryResult.Failure(Failure.Empty))
       }
 
     }.flowOn(Dispatchers.IO.limitedParallelism(30))

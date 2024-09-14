@@ -1,4 +1,4 @@
-package com.shermanrex.presentation.screen.recorder.component.bottomSection
+package com.shermanrex.recorderApp.presentation.screen.recorder.component.bottomSection
 
 import android.net.Uri
 import androidx.compose.animation.AnimatedContent
@@ -99,7 +99,7 @@ fun BottomSection(
           onPauseRecordClick = { onPauseRecordClick() },
           onStopRecordClick = { onStopRecordClick() },
           onStartRecordClick = { onStartRecordClick() },
-          onResumeRecordClick = { onResumeRecordClick() }
+          onResumeRecordClick = { onResumeRecordClick() },
         )
 
       }

@@ -1,6 +1,5 @@
 package com.shermanrex.recorderApp.presentation.screen.recorder.component
 
-import android.util.Log
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -35,14 +34,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.shermanrex.presentation.screen.component.util.NoRipple
-import com.shermanrex.presentation.screen.component.util.bounce
+import com.shermanrex.recorderApp.presentation.screen.component.util.bounce
 import com.shermanrex.recorderApp.R
-import com.shermanrex.recorderApp.domain.model.AudioFormat
-import com.shermanrex.recorderApp.domain.model.RecordAudioSetting
-import com.shermanrex.recorderApp.domain.model.RecorderState
 import com.shermanrex.recorderApp.data.util.bitToKbps
 import com.shermanrex.recorderApp.data.util.convertMilliSecondToTime
 import com.shermanrex.recorderApp.data.util.convertToKhz
+import com.shermanrex.recorderApp.domain.model.AudioFormat
+import com.shermanrex.recorderApp.domain.model.RecordAudioSetting
+import com.shermanrex.recorderApp.domain.model.RecorderState
 import com.shermanrex.recorderApp.presentation.ui.theme.AppRecorderTheme
 
 @Composable
@@ -86,13 +85,13 @@ fun TopSection(
       Row(
         modifier = Modifier
           .fillMaxWidth()
-          .padding(horizontal = 10.dp),
+          .padding(horizontal = 5.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
       ) {
         Text(
           text = "App Recorder",
-          modifier = Modifier,
+          modifier = Modifier.weight(0.9f),
           fontWeight = FontWeight.Bold,
           fontSize = 28.sp,
           color = MaterialTheme.colorScheme.onPrimary,
@@ -100,7 +99,8 @@ fun TopSection(
         IconButton(
           modifier = Modifier
             .bounce()
-            .weight(0.1f, false),
+            .weight(0.1f, false)
+            .size(26.dp),
           interactionSource = NoRipple,
           onClick = { onSettingClick() },
         ) {
@@ -177,7 +177,7 @@ fun TopSection(
       Row(
         modifier = Modifier
           .fillMaxWidth()
-          .padding(10.dp),
+          .padding(horizontal = 10.dp, vertical = 2.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
       ) {
@@ -203,7 +203,7 @@ fun TopSection(
   }
 }
 
-@Preview(widthDp = 943)
+@Preview()
 @Preview(uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun Preview() {

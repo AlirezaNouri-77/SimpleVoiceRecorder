@@ -9,17 +9,14 @@ import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.shermanrex.recorderApp.data.mapper.toMediaItem
+import com.shermanrex.recorderApp.data.service.MediaPlayerService
 import com.shermanrex.recorderApp.domain.model.RecordModel
 import com.shermanrex.recorderApp.domain.model.uiState.CurrentMediaPlayerState
-import com.shermanrex.recorderApp.data.service.MediaPlayerService
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class MediaPlayerServiceConnection @Inject constructor(var context: Context) {

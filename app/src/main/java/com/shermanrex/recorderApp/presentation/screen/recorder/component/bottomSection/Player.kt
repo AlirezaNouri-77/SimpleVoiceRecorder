@@ -1,4 +1,4 @@
-package com.shermanrex.presentation.screen.recorder.component.bottomSection
+package com.shermanrex.recorderApp.presentation.screen.recorder.component.bottomSection
 
 import android.net.Uri
 import androidx.compose.animation.core.Animatable
@@ -27,10 +27,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
@@ -43,9 +45,12 @@ import androidx.core.net.toUri
 import com.shermanrex.presentation.screen.component.util.NoRipple
 import com.shermanrex.recorderApp.R
 import com.shermanrex.recorderApp.data.Constant
-import com.shermanrex.recorderApp.domain.model.uiState.CurrentMediaPlayerState
 import com.shermanrex.recorderApp.data.util.convertMilliSecondToTime
+import com.shermanrex.recorderApp.domain.model.uiState.CurrentMediaPlayerState
 import com.shermanrex.recorderApp.presentation.ui.theme.AppRecorderTheme
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -61,6 +66,7 @@ fun Player(
   onClosePlayer: () -> Unit,
   currentPosition: () -> Long,
   currentPlayerState: () -> CurrentMediaPlayerState,
+  scope: CoroutineScope = rememberCoroutineScope(),
 ) {
 
   val sliderTrackScale = remember {
@@ -72,14 +78,15 @@ fun Player(
   var onSeekSlider by remember {
     mutableStateOf(false)
   }
-  val sliderTrackColor = if (onSeekSlider) 0.2f else 0f
   val sliderValue = if (onSeekSlider) onChangeSlider else currentPosition().toFloat()
   val icon = if (currentPlayerState().isPlaying) R.drawable.pause else R.drawable.icon_play
 
   LaunchedEffect(onSeekSlider) {
-    when (onSeekSlider) {
-      true -> sliderTrackScale.animateTo(1f)
-      else -> sliderTrackScale.animateTo(0f)
+    scope.launch(Dispatchers.Main.immediate) {
+      when (onSeekSlider) {
+        true -> sliderTrackScale.animateTo(0.3f)
+        else -> sliderTrackScale.animateTo(0f)
+      }
     }
   }
 
@@ -88,7 +95,7 @@ fun Player(
       .fillMaxWidth()
       .wrapContentSize()
       .mandatorySystemGesturesPadding()
-      .padding(horizontal = 10.dp, vertical = 8.dp),
+      .padding(horizontal = 6.dp, vertical = 15.dp),
     colors = CardDefaults.cardColors(
       containerColor = MaterialTheme.colorScheme.primary,
     ),
@@ -110,7 +117,7 @@ fun Player(
       ) {
         Text(
           modifier = Modifier.weight(0.9f),
-          text = currentPlayerState().mediaMetadata.displayTitle.toString(),
+          text = currentPlayerState().mediaMetadata.displayTitle?.toString() ?: "Nothing play",
           fontSize = 14.sp,
           fontWeight = FontWeight.SemiBold,
           color = MaterialTheme.colorScheme.onPrimary,
@@ -126,42 +133,46 @@ fun Player(
         }
       }
       Row(
-        modifier = Modifier
-          .fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceEvenly,
+        horizontalArrangement = Arrangement.SpaceAround,
       ) {
         Text(
-          text = currentPosition().convertMilliSecondToTime(false),
           modifier = Modifier.weight(0.15f, false),
+          text = currentPosition().convertMilliSecondToTime(false),
           fontSize = 14.sp,
           color = MaterialTheme.colorScheme.onPrimary,
         )
-        Box(modifier = Modifier.weight(0.9f, false)) {
+        Box(modifier = Modifier.weight(0.9f, true)) {
           Slider(
-            value = 0f,
+            value = 1f,
             enabled = false,
             onValueChange = {},
-            thumb = {
-              SliderDefaults.Thumb(
-                interactionSource = NoRipple,
-                thumbSize = DpSize.Zero
-              )
-            },
             track = { sliderState ->
               SliderDefaults.Track(
+                modifier = Modifier
+                  .scale(1f, 0.7f)
+                  .clip(RoundedCornerShape(10.dp)),
                 sliderState = sliderState,
-                modifier = Modifier.graphicsLayer { scaleY = 2.3f },
+                drawStopIndicator = {},
+                colors = SliderDefaults.colors(
+                  activeTrackColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.4f),
+                  disabledActiveTrackColor = Color.Transparent,
+                ),
+                trackInsideCornerSize = 0.dp,
+                thumbTrackGapSize = 0.dp,
               )
             },
-            valueRange = 0f..0f,
             colors = SliderDefaults.colors(
-              thumbColor = Color.Transparent,
-              activeTrackColor = Color.Transparent,
-              inactiveTrackColor = MaterialTheme.colorScheme.onPrimary,
+              disabledThumbColor = Color.Transparent,
+              disabledActiveTrackColor = MaterialTheme.colorScheme.onPrimary,
+              disabledInactiveTrackColor = MaterialTheme.colorScheme.onPrimary,
+              disabledActiveTickColor = Color.Transparent,
             ),
           )
           Slider(
+            modifier = Modifier
+              .fillMaxWidth(),
             value = sliderValue,
             onValueChangeFinished = {
               onSliderValueChange(onChangeSlider)
@@ -174,36 +185,39 @@ fun Player(
             thumb = {
               SliderDefaults.Thumb(
                 interactionSource = NoRipple,
+                colors = SliderDefaults.colors(
+                  thumbColor = Color.Transparent,
+                  disabledThumbColor = Color.Transparent,
+                ),
                 thumbSize = DpSize.Zero
               )
             },
             track = { sliderState ->
               SliderDefaults.Track(
                 sliderState = sliderState,
-                modifier = Modifier.graphicsLayer {
-                  scaleY = 2.3f + sliderTrackScale.value
-                },
+                modifier = Modifier
+                  .graphicsLayer {
+                    scaleY = 0.8f + sliderTrackScale.value
+                  }
+                  .clip(RoundedCornerShape(10.dp)),
                 colors = SliderDefaults.colors(
-                  activeTrackColor = MaterialTheme.colorScheme.onPrimary.copy(0.6f + sliderTrackColor),
+                  activeTrackColor = MaterialTheme.colorScheme.onPrimary,
                   inactiveTrackColor = Color.Transparent,
                 ),
+                drawStopIndicator = {},
+                thumbTrackGapSize = 0.dp,
               )
             },
-            valueRange = 0f..(currentPlayerState().mediaMetadata.extras?.getInt("duration")
-              ?.toFloat() ?: 0f),
-            colors = SliderDefaults.colors(
-              thumbColor = MaterialTheme.colorScheme.onPrimary,
-              activeTrackColor = MaterialTheme.colorScheme.onPrimary,
-              inactiveTrackColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.3f),
-            ),
+            valueRange = 0f..(currentPlayerState().mediaMetadata.extras?.getInt("duration")?.toFloat() ?: 0f),
           )
         }
 
         Text(
+          modifier = Modifier.weight(0.15f, false),
           text = currentPlayerState().mediaMetadata.extras?.getInt("duration")
             ?.convertMilliSecondToTime(false) ?: 0f.toString(),
-          modifier = Modifier.weight(0.15f, false),
           fontSize = 14.sp,
+          color = MaterialTheme.colorScheme.onPrimary,
         )
 
       }
