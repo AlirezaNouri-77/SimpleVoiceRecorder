@@ -2,13 +2,14 @@ package com.shermanrex.recorderApp.data.dataStore
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import com.shermanrex.recorderApp.domain.DataStoreManagerImpl
 import com.shermanrex.recorderApp.domain.model.AudioFormat
 import com.shermanrex.recorderApp.domain.model.RecordAudioSetting
 import com.shermanrex.recorderApp.domain.model.SettingNameFormat
-import com.shermanrex.recorderApp.domain.DataStoreManagerImpl
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOn
@@ -25,6 +26,10 @@ class DataStoreManager @Inject constructor(
     it[SAVE_PATH_KEY] ?: ""
   }.flowOn(Dispatchers.IO)
 
+  override var getIsFirstTimeAppLaunch: Flow<Boolean> = datastore.data.map {
+    it[IS_FIRST_TIME_APP_LAUNCH] ?: true
+  }.flowOn(Dispatchers.IO)
+
   override var getNameFormat: Flow<SettingNameFormat> = datastore.data.map {
     when (it[NAME_FORMAT_KEY]) {
       1 -> SettingNameFormat.FULL_DATE_TIME
@@ -36,6 +41,11 @@ class DataStoreManager @Inject constructor(
     }
   }.flowOn(Dispatchers.IO)
 
+  override suspend fun writeFirstTimeAppLaunch(boolean: Boolean) {
+    datastore.edit {
+      it[IS_FIRST_TIME_APP_LAUNCH] = boolean
+    }
+  }
   override var getAudioFormat: Flow<RecordAudioSetting> = datastore.data.map {
     val format = when (it[AUDIO_FORMAT_KEY]) {
       "m4a" -> AudioFormat.M4A
@@ -83,6 +93,7 @@ class DataStoreManager @Inject constructor(
     val BIT_RATE_KEY = intPreferencesKey("BIT_RATE_KEY")
     val SAMPLE_RATE_KEY = intPreferencesKey("SAMPLE_RATE_KEY")
     val AUDIO_FORMAT_KEY = stringPreferencesKey("AUDIO_FORMAT_KEY")
+    val IS_FIRST_TIME_APP_LAUNCH = booleanPreferencesKey("IS_FIRST_TIME_APP_LAUNCH")
   }
 
 }

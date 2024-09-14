@@ -1,6 +1,12 @@
 package com.shermanrex.recorderApp.presentation.screen.permision
 
+import android.Manifest
+import android.net.Uri
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,7 +18,12 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -23,11 +34,34 @@ import com.shermanrex.recorderApp.presentation.ui.theme.AppRecorderTheme
 @Composable
 fun PermissionScreen(
   modifier: Modifier = Modifier,
-  moveNextPage: () -> Boolean,
-  onPermission: () -> Unit,
-  onLocation: () -> Unit,
+  onLocation: (Uri) -> Unit,
   onMoveToNext: () -> Unit,
 ) {
+
+  var isNotificationPermission by remember {
+    mutableStateOf(false)
+  }
+  var isMicrophonePermission by remember {
+    mutableStateOf(false)
+  }
+  var isSafLocationGrant by remember {
+    mutableStateOf(false)
+  }
+
+  val notificationActivityResult = rememberLauncherForActivityResult(contract = ActivityResultContracts.RequestPermission()) { permission ->
+    isNotificationPermission = permission
+  }
+
+  val microphoneActivityResult = rememberLauncherForActivityResult(contract = ActivityResultContracts.RequestPermission()) { permission ->
+    isMicrophonePermission = permission
+  }
+
+  val safActivityResult = rememberLauncherForActivityResult(contract = ActivityResultContracts.OpenDocumentTree()) {
+      it?.let { uri ->
+        onLocation(uri)
+        isSafLocationGrant = true
+      }
+    }
 
   ConstraintLayout(
     modifier = modifier
@@ -60,6 +94,7 @@ fun PermissionScreen(
           end.linkTo(parent.end)
           bottom.linkTo(centerGuideLine)
         },
+      verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
       Text(
         text = "Permissions",
@@ -68,28 +103,53 @@ fun PermissionScreen(
         color = MaterialTheme.colorScheme.onPrimary,
       )
       Text(
-        text = "Request needed permission that need to app work properly",
+        text = "Request the necessary permissions required for the app to work properly",
         fontSize = 14.sp,
         color = MaterialTheme.colorScheme.onPrimary,
       )
+
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU){
+        Button(
+          onClick = {
+            notificationActivityResult.launch(Manifest.permission.POST_NOTIFICATIONS)
+          },
+          modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 10.dp),
+          colors = ButtonDefaults.buttonColors(
+            containerColor = if (isNotificationPermission) Color.Green.copy(alpha = 0.2f) else MaterialTheme.colorScheme.onBackground.copy(alpha = 0.1f),
+            contentColor = MaterialTheme.colorScheme.onPrimary,
+          ),
+        ) {
+          Text(
+            text = "Notification", fontSize = 16.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onPrimary,
+          )
+        }
+      }
+
       Button(
-        onClick = { onPermission() },
+        onClick = {
+          microphoneActivityResult.launch(Manifest.permission.RECORD_AUDIO)
+        },
         modifier = Modifier
           .fillMaxWidth()
-          .padding(10.dp),
+          .padding(horizontal = 10.dp),
         colors = ButtonDefaults.buttonColors(
-          containerColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.1f),
+          containerColor = if (isMicrophonePermission) Color.Green.copy(alpha = 0.2f) else MaterialTheme.colorScheme.onBackground.copy(alpha = 0.1f),
           contentColor = MaterialTheme.colorScheme.onPrimary,
         ),
       ) {
         Text(
-          text = "Grant", fontSize = 16.sp,
+          text = "Microphone", fontSize = 16.sp,
           fontWeight = FontWeight.SemiBold,
           color = MaterialTheme.colorScheme.onPrimary,
         )
       }
 
-      Spacer(modifier = Modifier.height(15.dp))
+      Spacer(Modifier.height(10.dp))
+
       Text(
         text = "Records save location",
         fontSize = 17.sp,
@@ -97,7 +157,7 @@ fun PermissionScreen(
         color = MaterialTheme.colorScheme.onPrimary,
       )
       Text(
-        text = "Choose a location for save records",
+        text = "Select a location for save records",
         fontSize = 14.sp,
         color = MaterialTheme.colorScheme.onPrimary,
       )
@@ -105,9 +165,9 @@ fun PermissionScreen(
         modifier = Modifier
           .fillMaxWidth()
           .padding(10.dp),
-        onClick = { onLocation() },
+        onClick = { safActivityResult.launch(null) },
         colors = ButtonDefaults.buttonColors(
-          containerColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.1f),
+          containerColor = if (isSafLocationGrant) Color.Green.copy(alpha = 0.2f) else MaterialTheme.colorScheme.onBackground.copy(alpha = 0.1f),
           contentColor = MaterialTheme.colorScheme.onPrimary,
         ),
       ) {
@@ -127,7 +187,9 @@ fun PermissionScreen(
           start.linkTo(parent.start)
           end.linkTo(parent.end)
         },
-      onClick = { if (moveNextPage()) onMoveToNext() },
+      onClick = {
+        if (isMicrophonePermission && isNotificationPermission && isSafLocationGrant) onMoveToNext()
+      },
       colors = ButtonDefaults.buttonColors(
         containerColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.1f),
         contentColor = MaterialTheme.colorScheme.onPrimary,
@@ -141,6 +203,7 @@ fun PermissionScreen(
         color = MaterialTheme.colorScheme.onPrimary,
       )
     }
+
   }
 
 
@@ -159,9 +222,7 @@ fun PermissionScreen(
 private fun Preview() {
   AppRecorderTheme {
     PermissionScreen(
-      onPermission = {},
       onLocation = {},
-      moveNextPage = { false },
       onMoveToNext = {})
   }
 }

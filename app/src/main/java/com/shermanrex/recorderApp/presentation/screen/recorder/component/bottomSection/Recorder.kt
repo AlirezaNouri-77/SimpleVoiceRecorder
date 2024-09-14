@@ -1,16 +1,27 @@
-package com.shermanrex.presentation.screen.recorder.component.bottomSection
+package com.shermanrex.recorderApp.presentation.screen.recorder.component.bottomSection
 
+import android.Manifest
+import android.app.Activity
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
+import android.provider.Settings
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.mandatorySystemGesturesPadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -22,6 +33,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -29,14 +41,20 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import com.shermanrex.presentation.screen.component.util.NoRipple
-import com.shermanrex.presentation.screen.component.util.bounce
+import com.shermanrex.recorderApp.presentation.screen.component.util.bounce
 import com.shermanrex.recorderApp.R
+import com.shermanrex.recorderApp.data.Constant
 import com.shermanrex.recorderApp.domain.model.RecorderState
+import com.shermanrex.recorderApp.presentation.screen.component.util.getActivity
+import com.shermanrex.recorderApp.presentation.screen.component.util.openSetting
 
 @Composable
 fun Recorder(
@@ -46,6 +64,7 @@ fun Recorder(
   onStopRecordClick: () -> Unit,
   onStartRecordClick: () -> Unit,
   onResumeRecordClick: () -> Unit,
+  context: Context = LocalContext.current,
 ) {
 
   val bottomColor = if (isSystemInDarkTheme()) Color.White else Color.Black
@@ -63,18 +82,33 @@ fun Recorder(
       else -> {}
     }
   }
-  val buttonText = when (recorderState()) {
-    RecorderState.RECORDING -> "Recording"
-    RecorderState.STOP -> "Record"
-    RecorderState.PAUSE -> "Resume"
-    RecorderState.IDLE -> "Record"
+  val buttonText = remember(recorderState()) {
+    when (recorderState()) {
+      RecorderState.RECORDING -> "Recording"
+      RecorderState.STOP -> "Record"
+      RecorderState.PAUSE -> "Resume"
+      RecorderState.IDLE -> "Record"
+    }
+  }
+
+  if (onButtonClick) {
+    CheckMicrophonePermission(
+      context = context,
+      onGrant = {
+        onStartRecordClick()
+        onButtonClick = false
+      },
+      onDenied = {
+        onButtonClick = false
+      }
+    )
   }
 
   Card(
     modifier = modifier
       .fillMaxWidth()
       .wrapContentSize()
-      .mandatorySystemGesturesPadding()
+      .navigationBarsPadding()
       .padding(horizontal = 10.dp),
     colors = CardDefaults.cardColors(
       containerColor = MaterialTheme.colorScheme.primary,
@@ -99,7 +133,6 @@ fun Recorder(
           .weight(0.2f, false),
         onClick = {
           onPauseRecordClick()
-          onButtonClick = true
         },
         interactionSource = NoRipple,
         colors = IconButtonDefaults.iconButtonColors(
@@ -120,7 +153,7 @@ fun Recorder(
           if (recorderState() == RecorderState.PAUSE) {
             onResumeRecordClick()
           } else {
-            onStartRecordClick()
+            onButtonClick = true
           }
         },
         colors = ButtonDefaults.elevatedButtonColors(
@@ -160,3 +193,94 @@ fun Recorder(
     }
   }
 }
+
+@Composable
+private fun CheckMicrophonePermission(
+  context: Context,
+  onGrant: () -> Unit,
+  onDenied: () -> Unit,
+) {
+
+  if (Constant.permissionList.all { ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED }) {
+    onGrant()
+    return
+  }
+
+  val permissionList = remember { mutableListOf<String>() }
+
+  Constant.permissionList.forEach {
+    if (ContextCompat.checkSelfPermission(context, it) != PackageManager.PERMISSION_GRANTED && !permissionList.contains(it)) {
+      permissionList.add(it)
+    }
+  }
+
+  var microphonePermission by remember {
+    mutableStateOf(false)
+  }
+  var notificationPermission by remember {
+    mutableStateOf(false)
+  }
+
+  LaunchedEffect(notificationPermission, microphonePermission) {
+    if (notificationPermission && microphonePermission) onGrant()
+  }
+
+  permissionList.onEach {
+
+    val microphoneActivityResult = rememberLauncherForActivityResult(contract = ActivityResultContracts.RequestPermission()) { isGrant ->
+      when (isGrant) {
+        true -> permissionList.remove(it)
+        false -> onDenied()
+      }
+    }
+
+    when {
+      ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED -> {
+        if (it == Manifest.permission.RECORD_AUDIO) {
+          microphonePermission = true
+        } else notificationPermission = true
+      }
+
+      context.getActivity()?.let { it1 -> ActivityCompat.shouldShowRequestPermissionRationale(it1, it) } == true -> {
+        val dialogText = when (it) {
+          Manifest.permission.RECORD_AUDIO -> "The microphone permission isn't granted"
+          Manifest.permission.POST_NOTIFICATIONS -> "The notification permission isn't granted"
+          else -> ""
+        }
+        AlertDialog(
+          title = {
+            Text(text = "permission")
+          },
+          text = {
+            Text(text = dialogText)
+          },
+          onDismissRequest = {
+            onDenied()
+          },
+          dismissButton = {
+            Button(
+              onClick = {
+                onDenied()
+              }
+            ) { Text("Dismiss") }
+          },
+          confirmButton = {
+            Button(
+              onClick = context::openSetting
+            ) { Text("Open Setting") }
+          },
+          containerColor = MaterialTheme.colorScheme.primary
+        )
+      }
+
+      context.getActivity()?.let { it1 -> ActivityCompat.shouldShowRequestPermissionRationale(it1, it) } == false -> {
+        SideEffect { microphoneActivityResult.launch(it) }
+      }
+
+      else -> SideEffect { microphoneActivityResult.launch(it) }
+
+    }
+  }
+}
+
+

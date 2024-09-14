@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.shermanrex.recorderApp.data.dataStore.DataStoreManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -16,16 +17,25 @@ class PermissionViewModel @Inject constructor(
   private var dataStoreManager: DataStoreManager,
 ) : ViewModel() {
 
-  val uiState = mutableStateOf(PermissionScreenUiState.INITIAL)
-  var permissionGrant by mutableStateOf(false)
-  var saveLocationGrant by mutableStateOf(false)
+  val uiState = mutableStateOf(PermissionScreenUiState.PERMISSION_GRANT)
+  var isAppFirstTimeLaunch by mutableStateOf(false)
+
+  init {
+    viewModelScope.launch {
+      isAppFirstTimeLaunch = dataStoreManager.getIsFirstTimeAppLaunch.first()
+    }
+  }
 
   fun writeDataStoreSavePath(savePath: String) = viewModelScope.launch(Dispatchers.IO) {
     dataStoreManager.writeSavePath(savePath)
   }
 
+  fun writeFirstTimeAppLaunch(boolean: Boolean = false) = viewModelScope.launch(Dispatchers.IO) {
+    dataStoreManager.writeFirstTimeAppLaunch(boolean)
+  }
+
 }
 
 enum class PermissionScreenUiState {
-  PERMISSION_GRANT, PERMISSION_NOT_GRANT, INITIAL
+  PERMISSION_GRANT, INITIAL
 }

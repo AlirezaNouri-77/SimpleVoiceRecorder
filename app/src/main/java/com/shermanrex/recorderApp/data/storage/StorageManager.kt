@@ -1,23 +1,17 @@
 package com.shermanrex.recorderApp.data.storage
 
 import android.content.Context
-import android.database.ContentObserver
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.Build
 import android.os.ParcelFileDescriptor
 import android.provider.DocumentsContract
-import android.util.Log
-import androidx.core.net.toUri
 import androidx.documentfile.provider.DocumentFile
-import com.shermanrex.recorderApp.domain.model.RecordModel
 import com.shermanrex.recorderApp.data.util.getFileFormat
 import com.shermanrex.recorderApp.data.util.removeFileformat
 import com.shermanrex.recorderApp.domain.StorageManagerImpl
+import com.shermanrex.recorderApp.domain.model.RecordModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
@@ -37,6 +31,12 @@ class StorageManager @Inject constructor(
     }
   }
 
+  override suspend fun getSavePathDocumentFile(uri: Uri): DocumentFile? {
+    return withContext(Dispatchers.IO) {
+      runCatching { DocumentFile.fromTreeUri(context, uri) }.getOrNull()
+    }
+  }
+
   override suspend fun deleteRecord(uri: Uri) {
     withContext(Dispatchers.IO) {
       val document = DocumentFile.fromSingleUri(context, uri)
@@ -49,7 +49,7 @@ class StorageManager @Inject constructor(
   }
 
   override suspend fun appendFileExtension(uri: Uri, fileFormat: String): Uri {
-    return withContext(Dispatchers.IO){
+    return withContext(Dispatchers.IO) {
       val targetFileName = DocumentFile.fromSingleUri(context, uri)?.name ?: ""
       val newNameWithExtension = targetFileName + ".${fileFormat}"
       DocumentsContract.renameDocument(context.contentResolver, uri, newNameWithExtension) ?: Uri.EMPTY
