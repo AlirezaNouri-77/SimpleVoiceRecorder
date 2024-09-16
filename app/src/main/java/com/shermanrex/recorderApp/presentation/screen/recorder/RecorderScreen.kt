@@ -103,16 +103,18 @@ fun RecorderScreen(
 
   ListDropDownMenu(
     dropDownMenuState = { viewModel.dropDownMenuState },
+    isSelectedMode = viewModel.showSelectMode,
     onDismiss = {
       viewModel.dropDownMenuState = viewModel.dropDownMenuState.copy(showDropDown = false)
     },
     onRenameClick = {
-      viewModel.dropDownMenuState = viewModel.dropDownMenuState.copy(showDropDown = false)
       viewModel.setUiEvent(RecorderScreenUiEvent.RENAME_DIALOG)
     },
     onDeleteClick = {
-      viewModel.dropDownMenuState = viewModel.dropDownMenuState.copy(showDropDown = false)
       viewModel.setUiEvent(RecorderScreenUiEvent.DELETE_DIALOG)
+    },
+    onSelectMode = {
+      viewModel.showSelectMode = !viewModel.showSelectMode
     }
   )
 
@@ -243,12 +245,23 @@ fun RecorderScreen(
                   currentItemIndex = viewModel.currentIndexClick,
                   data = item,
                   onItemClick = {
+                    if (viewModel.showSelectMode) return@RecordListItem
                     viewModel.startPlayAudio(item)
                     viewModel.currentIndexClick = it
                   },
                   onLongItemClick = {
+                    if (viewModel.mediaPlayerState.isPlaying) return@RecordListItem
                     viewModel.dropDownMenuState = viewModel.dropDownMenuState.copy(showDropDown = true, itemIndex = it)
                   },
+                  isItemSelected = viewModel.selectedItemList.contains(item),
+                  onCheckBoxClick = {
+                    if (!viewModel.selectedItemList.contains(item)) {
+                      viewModel.selectedItemList.add(item)
+                    } else {
+                      viewModel.selectedItemList.remove(item)
+                    }
+                  },
+                  onSelectMode = viewModel.showSelectMode,
                 )
 
               }
@@ -305,12 +318,16 @@ fun RecorderScreen(
           viewModel.setUiEvent(RecorderScreenUiEvent.DELETE_DIALOG)
           viewModel.currentIndexClick = -1
         },
-        onShareClick = context::shareItem,
         currentPosition = { viewModel.currentPlayerPosition.toLong() },
         onClosePlayer = {
           viewModel.stopPlayAudio()
           viewModel.currentIndexClick = -1
         },
+        onDismissSelectMode = {
+          viewModel.showSelectMode = false
+          viewModel.deSelectAllItem()
+        },
+        onShareClick = context::shareItem,
         onResumeRecordClick = viewModel::resumeRecord,
         onStopRecordClick = viewModel::stopRecord,
         onPauseRecordClick = viewModel::pauseRecord,
@@ -320,6 +337,11 @@ fun RecorderScreen(
         onResumePlayClick = viewModel::resumeAudio,
         onFastBackwardClick = viewModel::fastBackForwardAudio,
         onFastForwardClick = viewModel::fastForwardAudio,
+        isOnSelectMode = viewModel.showSelectMode,
+        selectedItemCount = { viewModel.selectedItemList.size },
+        onDeSelectAll = viewModel::deSelectAllItem,
+        onSelectAll = viewModel::selectAllItem,
+        onDeleteSelectModeClick = viewModel::deleteSelectedRecord,
       )
 
     }

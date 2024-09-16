@@ -1,4 +1,4 @@
-package com.shermanrex.presentation.app
+package com.shermanrex.recorderApp.presentation.app
 
 import android.app.Application
 import android.app.NotificationChannel
@@ -20,4 +20,5 @@ class RecorderApplication : Application() {
     }
 
   }
+
 }

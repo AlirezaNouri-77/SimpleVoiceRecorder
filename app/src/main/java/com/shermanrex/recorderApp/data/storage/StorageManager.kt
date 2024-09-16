@@ -12,6 +12,7 @@ import com.shermanrex.recorderApp.data.util.removeFileformat
 import com.shermanrex.recorderApp.domain.StorageManagerImpl
 import com.shermanrex.recorderApp.domain.model.RecordModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
@@ -37,8 +38,9 @@ class StorageManager @Inject constructor(
     }
   }
 
-  override suspend fun deleteRecord(uri: Uri) {
-    withContext(Dispatchers.IO) {
+  @OptIn(ExperimentalCoroutinesApi::class)
+  override suspend fun deleteRecord(uri: Uri):Boolean {
+    return withContext(Dispatchers.IO.limitedParallelism(1)) {
       val document = DocumentFile.fromSingleUri(context, uri)
       document?.delete() ?: false
     }

@@ -23,17 +23,19 @@ import com.shermanrex.recorderApp.domain.model.DropDownMenuStateUi
 @Composable
 fun ListDropDownMenu(
   modifier: Modifier = Modifier,
+  isSelectedMode: Boolean,
   dropDownMenuState: () -> DropDownMenuStateUi,
   onDismiss: () -> Unit,
   onRenameClick: () -> Unit,
   onDeleteClick: () -> Unit,
+  onSelectMode: () -> Unit,
 ) {
   MaterialTheme(shapes = MaterialTheme.shapes.copy(RoundedCornerShape(20.dp))) {
     DropdownMenu(
       modifier = modifier
         .background(MaterialTheme.colorScheme.primary)
         .wrapContentSize(),
-      expanded = dropDownMenuState().showDropDown,
+      expanded = dropDownMenuState().showDropDown && !isSelectedMode,
       onDismissRequest = { onDismiss() },
       offset = dropDownMenuState().longPressOffset,
     ) {
@@ -47,7 +49,10 @@ fun ListDropDownMenu(
             tint = MaterialTheme.colorScheme.onPrimary,
           )
         },
-        onClick = { onDeleteClick() },
+        onClick = {
+          onDismiss()
+          onDeleteClick()
+        },
         contentPadding = PaddingValues(horizontal = 7.dp, vertical = 4.dp),
         interactionSource = NoRipple,
       )
@@ -62,7 +67,27 @@ fun ListDropDownMenu(
           )
         },
         contentPadding = PaddingValues(horizontal = 7.dp, vertical = 4.dp),
-        onClick = { onRenameClick() },
+        onClick = {
+          onDismiss()
+          onRenameClick()
+        },
+        interactionSource = NoRipple,
+      )
+      DropdownMenuItem(
+        text = { Text(text = "Select", fontSize = 14.sp, fontWeight = FontWeight.Medium) },
+        leadingIcon = {
+          Icon(
+            modifier = Modifier.size(16.dp),
+            painter = painterResource(id = R.drawable.icon_rename),
+            contentDescription = "",
+            tint = MaterialTheme.colorScheme.onPrimary,
+          )
+        },
+        contentPadding = PaddingValues(horizontal = 7.dp, vertical = 4.dp),
+        onClick = {
+          onDismiss()
+          onSelectMode()
+        },
         interactionSource = NoRipple,
       )
     }

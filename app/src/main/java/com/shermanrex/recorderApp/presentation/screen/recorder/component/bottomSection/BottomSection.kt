@@ -8,6 +8,13 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -15,13 +22,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import androidx.media3.common.MediaMetadata
 import com.shermanrex.recorderApp.domain.model.RecorderState
 import com.shermanrex.recorderApp.domain.model.uiState.CurrentMediaPlayerState
 
+
 @Composable
 fun BottomSection(
   modifier: Modifier = Modifier,
+  isOnSelectMode: Boolean,
+  onDismissSelectMode: () -> Unit,
+  onSelectAll: () -> Unit,
+  onDeleteSelectModeClick: () -> Unit,
+  onDeSelectAll: () -> Unit,
+  selectedItemCount: () -> Int,
   recorderState: () -> RecorderState,
   onPauseRecordClick: () -> Unit,
   onStopRecordClick: () -> Unit,
@@ -94,14 +109,43 @@ fun BottomSection(
           currentPlayerState = { currentPlayerState() }
         )
 
-        else -> Recorder(
-          recorderState = { recorderState() },
-          onPauseRecordClick = { onPauseRecordClick() },
-          onStopRecordClick = { onStopRecordClick() },
-          onStartRecordClick = { onStartRecordClick() },
-          onResumeRecordClick = { onResumeRecordClick() },
-        )
+        else -> {
+          Card(
+            modifier = modifier
+              .fillMaxWidth()
+              .wrapContentSize()
+              .navigationBarsPadding()
+              .padding(horizontal = 10.dp),
+            colors = CardDefaults.cardColors(
+              containerColor = MaterialTheme.colorScheme.primary,
+            ),
+            shape = RoundedCornerShape(20.dp),
+            elevation = CardDefaults.cardElevation(
+              defaultElevation = 10.dp
+            ),
+          ) {
+            AnimatedContent(isOnSelectMode, label = "") { targetState ->
+              when (targetState) {
+                true -> SelectedMode(
+                    selectedItemCount = { selectedItemCount() },
+                    onDismiss = { onDismissSelectMode() },
+                    onSelectAll = { onSelectAll() },
+                    onDeSelectAll = { onDeSelectAll() },
+                    onDeleteClick = { onDeleteSelectModeClick() },
+                  )
 
+                false -> Recorder(
+                  recorderState = { recorderState() },
+                  onPauseRecordClick = { onPauseRecordClick() },
+                  onStopRecordClick = { onStopRecordClick() },
+                  onStartRecordClick = { onStartRecordClick() },
+                  onResumeRecordClick = { onResumeRecordClick() },
+                )
+
+              }
+            }
+          }
+        }
       }
 
     }
@@ -109,3 +153,4 @@ fun BottomSection(
   }
 
 }
+

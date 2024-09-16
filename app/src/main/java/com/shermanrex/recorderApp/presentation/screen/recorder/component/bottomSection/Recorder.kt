@@ -1,12 +1,8 @@
 package com.shermanrex.recorderApp.presentation.screen.recorder.component.bottomSection
 
 import android.Manifest
-import android.app.Activity
 import android.content.Context
-import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
-import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.Animatable
@@ -15,16 +11,11 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -49,10 +40,10 @@ import androidx.compose.ui.unit.sp
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.shermanrex.presentation.screen.component.util.NoRipple
-import com.shermanrex.recorderApp.presentation.screen.component.util.bounce
 import com.shermanrex.recorderApp.R
 import com.shermanrex.recorderApp.data.Constant
 import com.shermanrex.recorderApp.domain.model.RecorderState
+import com.shermanrex.recorderApp.presentation.screen.component.util.bounce
 import com.shermanrex.recorderApp.presentation.screen.component.util.getActivity
 import com.shermanrex.recorderApp.presentation.screen.component.util.openSetting
 
@@ -67,17 +58,17 @@ fun Recorder(
   context: Context = LocalContext.current,
 ) {
 
-  val bottomColor = if (isSystemInDarkTheme()) Color.White else Color.Black
+  val isDarkMode = isSystemInDarkTheme()
   var onButtonClick by remember {
     mutableStateOf(false)
   }
   val animateColorButton = remember {
-    Animatable(bottomColor)
+    Animatable(if (isDarkMode) Color.White else Color.Black)
   }
   LaunchedEffect(recorderState()) {
     when (recorderState()) {
       RecorderState.RECORDING -> animateColorButton.animateTo(Color(0xFFED0909), tween(600))
-      RecorderState.STOP -> animateColorButton.animateTo(bottomColor, tween(600))
+      RecorderState.STOP -> animateColorButton.animateTo(if (isDarkMode) Color.White else Color.Black, tween(600))
       RecorderState.PAUSE -> animateColorButton.animateTo(Color(0xFF1F75FF), tween(600))
       else -> {}
     }
@@ -104,92 +95,76 @@ fun Recorder(
     )
   }
 
-  Card(
+  Row(
     modifier = modifier
       .fillMaxWidth()
-      .wrapContentSize()
-      .navigationBarsPadding()
-      .padding(horizontal = 10.dp),
-    colors = CardDefaults.cardColors(
-      containerColor = MaterialTheme.colorScheme.primary,
-    ),
-    shape = RoundedCornerShape(20.dp),
-    elevation = CardDefaults.cardElevation(
-      defaultElevation = 10.dp
-    ),
+      .padding(vertical = 10.dp),
+    verticalAlignment = Alignment.CenterVertically,
+    horizontalArrangement = Arrangement.spacedBy(25.dp, Alignment.CenterHorizontally),
   ) {
 
-    Row(
+    IconButton(
       modifier = Modifier
-        .fillMaxWidth()
-        .padding(vertical = 10.dp),
-      verticalAlignment = Alignment.CenterVertically,
-      horizontalArrangement = Arrangement.spacedBy(25.dp, Alignment.CenterHorizontally),
+        .bounce()
+        .weight(0.2f, false),
+      onClick = {
+        onPauseRecordClick()
+      },
+      interactionSource = NoRipple,
+      colors = IconButtonDefaults.iconButtonColors(
+        containerColor = Color.Transparent,
+        contentColor = MaterialTheme.colorScheme.onPrimary,
+      ),
     ) {
+      Icon(
+        modifier = Modifier.size(19.dp),
+        painter = painterResource(id = R.drawable.pause),
+        contentDescription = "",
+      )
+    }
 
-      IconButton(
-        modifier = Modifier
-          .bounce()
-          .weight(0.2f, false),
-        onClick = {
-          onPauseRecordClick()
-        },
-        interactionSource = NoRipple,
-        colors = IconButtonDefaults.iconButtonColors(
-          containerColor = Color.Transparent,
-          contentColor = MaterialTheme.colorScheme.onPrimary,
-        ),
-      ) {
-        Icon(
-          modifier = Modifier.size(19.dp),
-          painter = painterResource(id = R.drawable.pause),
-          contentDescription = "",
-        )
-      }
+    ElevatedButton(
+      modifier = Modifier.weight(0.5f, true),
+      onClick = {
+        if (recorderState() == RecorderState.PAUSE) {
+          onResumeRecordClick()
+        } else {
+          onButtonClick = true
+        }
+      },
+      colors = ButtonDefaults.elevatedButtonColors(
+        containerColor = animateColorButton.value,
+      ),
+      elevation = ButtonDefaults.elevatedButtonElevation(
+        defaultElevation = 10.dp,
+        pressedElevation = 5.dp
+      )
+    ) {
+      Text(
+        text = buttonText,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 19.sp,
+      )
+    }
 
-      ElevatedButton(
-        modifier = Modifier.weight(0.5f, true),
-        onClick = {
-          if (recorderState() == RecorderState.PAUSE) {
-            onResumeRecordClick()
-          } else {
-            onButtonClick = true
-          }
-        },
-        colors = ButtonDefaults.elevatedButtonColors(
-          containerColor = animateColorButton.value,
-        ),
-        elevation = ButtonDefaults.elevatedButtonElevation(
-          defaultElevation = 10.dp,
-          pressedElevation = 5.dp
-        )
-      ) {
-        Text(
-          text = buttonText,
-          fontWeight = FontWeight.SemiBold,
-          fontSize = 19.sp,
-        )
-      }
-
-      IconButton(
-        modifier = Modifier
-          .bounce()
-          .weight(0.2f, false),
-        onClick = {
-          onStopRecordClick()
-        },
-        interactionSource = NoRipple,
-        colors = IconButtonDefaults.iconButtonColors(
-          containerColor = Color.Transparent,
-          contentColor = MaterialTheme.colorScheme.onPrimary,
-        ),
-      ) {
-        Icon(
-          modifier = Modifier.size(19.dp),
-          painter = painterResource(id = R.drawable.stop),
-          contentDescription = "",
-        )
-      }
+    IconButton(
+      modifier = Modifier
+        .bounce()
+        .weight(0.2f, false),
+      onClick = {
+        onStopRecordClick()
+      },
+      interactionSource = NoRipple,
+      colors = IconButtonDefaults.iconButtonColors(
+        containerColor = Color.Transparent,
+        contentColor = MaterialTheme.colorScheme.onPrimary,
+      ),
+    ) {
+      Icon(
+        modifier = Modifier.size(19.dp),
+        painter = painterResource(id = R.drawable.stop),
+        contentDescription = "",
+      )
     }
   }
 }

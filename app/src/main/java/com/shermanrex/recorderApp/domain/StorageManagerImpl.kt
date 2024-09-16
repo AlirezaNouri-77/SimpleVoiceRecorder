@@ -7,7 +7,7 @@ import com.shermanrex.recorderApp.domain.model.RecordModel
 
 interface StorageManagerImpl {
   fun getSavePath(document: DocumentFile): ParcelFileDescriptor?
-  suspend fun deleteRecord(uri: Uri)
+  suspend fun deleteRecord(uri: Uri): Boolean
   suspend fun createDocumentFile(fileName: String, savePath: String): DocumentFile?
   suspend fun renameRecord(uri: Uri, newName: String): Uri
   suspend fun appendFileExtension(uri: Uri, fileFormat: String): Uri

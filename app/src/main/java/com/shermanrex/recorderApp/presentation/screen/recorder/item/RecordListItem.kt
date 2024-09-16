@@ -1,6 +1,12 @@
 package com.shermanrex.recorderApp.presentation.screen.recorder.item
 
 import android.net.Uri
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -10,6 +16,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -18,8 +26,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.max
 import androidx.compose.ui.unit.sp
 import com.shermanrex.recorderApp.data.util.convertByteToReadableSize
 import com.shermanrex.recorderApp.data.util.convertMilliSecondToTime
@@ -35,12 +45,14 @@ fun RecordListItem(
   data: RecordModel,
   itemIndex: Int,
   currentItemIndex: Int,
+  onSelectMode: Boolean,
+  isItemSelected: Boolean,
   onItemClick: (Int) -> Unit,
   onLongItemClick: (Int) -> Unit,
+  onCheckBoxClick: (RecordModel) -> Unit,
 ) {
 
-  val selectedColor =
-    if (currentItemIndex == itemIndex) MaterialTheme.colorScheme.primary.copy(alpha = 0.6f) else Color.Transparent
+  val selectedColor = if (currentItemIndex == itemIndex) MaterialTheme.colorScheme.primary.copy(alpha = 0.6f) else Color.Transparent
 
   Surface(
     modifier = modifier
@@ -75,6 +87,7 @@ fun RecordListItem(
             fontSize = 15.sp,
             fontWeight = FontWeight.Medium,
             color = MaterialTheme.colorScheme.onPrimary,
+            maxLines = 2,
           )
           Text(
             text = "${data.bitrate.convertToKbps()}, ${data.size.convertByteToReadableSize()}, ${data.sampleRate.convertToKhz()}, ${data.format}",
@@ -84,12 +97,31 @@ fun RecordListItem(
           )
         }
         Text(
+          modifier = Modifier.weight(0.2f),
           text = data.duration.convertMilliSecondToTime(false),
           fontSize = 13.sp,
           fontWeight = FontWeight.Medium,
-
+          textAlign = TextAlign.Center,
           color = MaterialTheme.colorScheme.onPrimary,
         )
+        AnimatedVisibility(
+          modifier = Modifier.weight(0.15f),
+          visible = onSelectMode,
+          enter = fadeIn() + slideInHorizontally(tween(300)) { it / 3 },
+          exit = slideOutHorizontally { it } + fadeOut(),
+        ) {
+          Checkbox(
+            checked = isItemSelected,
+            onCheckedChange = {
+              onCheckBoxClick(data)
+            },
+            colors = CheckboxDefaults.colors(
+              checkedColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.1f),
+              checkmarkColor = MaterialTheme.colorScheme.onPrimary,
+              uncheckedColor = MaterialTheme.colorScheme.onPrimary,
+            ),
+          )
+        }
       }
     }
   }
@@ -116,7 +148,10 @@ private fun Preview() {
       itemIndex = 1,
       currentItemIndex = 1,
       onItemClick = {},
-      onLongItemClick = {}
+      onLongItemClick = {},
+      onCheckBoxClick = {},
+      onSelectMode = true,
+      isItemSelected = false,
     )
   }
 }

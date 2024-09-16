@@ -58,6 +58,7 @@ class AppRecorderViewModel @Inject constructor(
   var amplitudesList = mutableStateListOf<Float>()
 
   var currentAudioFormat by mutableStateOf(RecordAudioSetting.Empty)
+  var selectedItemList = mutableStateListOf<RecordModel>()
 
   private var _uiEvent = MutableSharedFlow<RecorderScreenUiEvent>()
   var uiEvent = _uiEvent.asSharedFlow()
@@ -73,7 +74,7 @@ class AppRecorderViewModel @Inject constructor(
   var dropDownMenuState by mutableStateOf(DropDownMenuStateUi.Empty)
   var showSettingBottomSheet by mutableStateOf(false)
 
-  // var showNamePickerDialog by mutableStateOf(false)
+  var showSelectMode by mutableStateOf(false)
   var currentIndexClick by mutableIntStateOf(-1)
 
   init {
@@ -110,10 +111,11 @@ class AppRecorderViewModel @Inject constructor(
 
   fun deleteRecord(recordModel: RecordModel) {
     viewModelScope.launch {
-      stopPlayAudio()
-      recordDataList.remove(recordModel)
-      storageManager.deleteRecord(recordModel.path)
-      if (recordDataList.size == 0) screenRecorderScreenUiState.value = RecorderScreenUiState.EMPTY
+      if (mediaPlayerState.isPlaying) stopPlayAudio()
+      if (storageManager.deleteRecord(recordModel.path)) {
+        recordDataList.remove(recordModel)
+        if (recordDataList.size == 0) screenRecorderScreenUiState.value = RecorderScreenUiState.EMPTY
+      }
     }
   }
 
@@ -185,6 +187,28 @@ class AppRecorderViewModel @Inject constructor(
   fun stopPlayAudio() {
     mediaPlayerServiceConnection.stopPlayAudio()
     amplitudesList.clear()
+  }
+
+  fun deleteSelectedRecord() {
+    if (selectedItemList.size == 0) return
+    viewModelScope.launch {
+      selectedItemList.forEach {
+        deleteRecord(it)
+      }
+      selectedItemList.clear()
+    }
+  }
+
+  fun selectAllItem() = viewModelScope.launch {
+    recordDataList.forEach {
+      if (it !in selectedItemList) {
+        selectedItemList.add(it)
+      }
+    }
+  }
+
+  fun deSelectAllItem() = viewModelScope.launch {
+    selectedItemList.clear()
   }
 
   fun resumeAudio() = mediaPlayerServiceConnection.resumeAudio()

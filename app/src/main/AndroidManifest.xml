@@ -15,7 +15,7 @@
         android:maxSdkVersion="32" />
 
     <application
-        android:name="com.shermanrex.presentation.app.RecorderApplication"
+        android:name=".presentation.app.RecorderApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"

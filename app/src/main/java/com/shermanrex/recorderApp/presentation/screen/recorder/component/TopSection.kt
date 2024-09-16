@@ -34,7 +34,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.shermanrex.presentation.screen.component.util.NoRipple
-import com.shermanrex.recorderApp.presentation.screen.component.util.bounce
 import com.shermanrex.recorderApp.R
 import com.shermanrex.recorderApp.data.util.bitToKbps
 import com.shermanrex.recorderApp.data.util.convertMilliSecondToTime
@@ -42,6 +41,7 @@ import com.shermanrex.recorderApp.data.util.convertToKhz
 import com.shermanrex.recorderApp.domain.model.AudioFormat
 import com.shermanrex.recorderApp.domain.model.RecordAudioSetting
 import com.shermanrex.recorderApp.domain.model.RecorderState
+import com.shermanrex.recorderApp.presentation.screen.component.util.bounce
 import com.shermanrex.recorderApp.presentation.ui.theme.AppRecorderTheme
 
 @Composable
