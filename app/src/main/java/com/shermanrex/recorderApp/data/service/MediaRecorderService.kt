@@ -19,9 +19,12 @@ import com.shermanrex.recorderApp.domain.model.notification.ServiceActionNotific
 import com.shermanrex.recorderApp.presentation.notification.MyNotificationManager
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
@@ -58,8 +61,8 @@ class MediaRecorderService : LifecycleService() {
   private var _recordTimer = MutableStateFlow(0)
   var recordTimer = _recordTimer.asStateFlow()
 
-  private var _amplitudes = MutableStateFlow(0f)
-  val amplitudes = _amplitudes.asStateFlow()
+  private var _amplitudes = MutableSharedFlow<Float>(extraBufferCapacity = 1,onBufferOverflow = BufferOverflow.DROP_OLDEST)
+  val amplitudes = _amplitudes.asSharedFlow()
 
   override fun onBind(intent: Intent): IBinder {
     super.onBind(intent)
@@ -75,7 +78,7 @@ class MediaRecorderService : LifecycleService() {
         if (_recorderState.value == RecorderState.RECORDING) {
           val timeRecord = (System.currentTimeMillis() - startRecordTimeStamp).toInt() + currentTimer
           _recordTimer.value = timeRecord
-          _amplitudes.value = mediaRecorder.maxAmplitude.toFloat()
+          _amplitudes.emit(mediaRecorder.maxAmplitude.toFloat())
         }
       }
     }
