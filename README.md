@@ -16,5 +16,5 @@
 ### Demo
 recorded in android studio emulator
 
-https://github.com/AlirezaNouri-77/SimpleAppRecorder/assets/71293106/a08ec31e-9dd6-4ad3-8112-86e51a545b27
+https://github.com/user-attachments/assets/927715f0-2c37-4a97-b48b-e8689a014920
 
