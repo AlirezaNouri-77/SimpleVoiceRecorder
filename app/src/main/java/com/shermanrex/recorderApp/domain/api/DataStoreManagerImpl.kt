@@ -1,4 +1,4 @@
-package com.shermanrex.recorderApp.domain
+package com.shermanrex.recorderApp.domain.api
 
 import com.shermanrex.recorderApp.data.dataStore.SavePath
 import com.shermanrex.recorderApp.domain.model.AudioFormat

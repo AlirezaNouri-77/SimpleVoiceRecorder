@@ -37,7 +37,8 @@ fun <T : Number> T?.convertMilliSecondToTime(showMilliSecond: Boolean = true): S
   }
 }
 
-fun Long.convertByteToReadableSize(): AnnotatedString {
+fun <T : Number> T.convertByteToReadableSize(): AnnotatedString {
+  if (this !is Long) throw IllegalArgumentException("input should be long")
   val input = this
   return if (input >= 1_000_000_000) {
     buildAnnotatedString {

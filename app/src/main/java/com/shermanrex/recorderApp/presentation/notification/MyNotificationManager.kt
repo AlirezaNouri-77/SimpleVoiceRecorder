@@ -7,7 +7,6 @@ import android.content.Intent
 import androidx.core.app.NotificationCompat
 import com.shermanrex.recorderApp.R
 import com.shermanrex.recorderApp.data.service.MediaRecorderService
-import com.shermanrex.recorderApp.data.util.convertMilliSecondToTime
 import com.shermanrex.recorderApp.domain.model.RecorderState
 import com.shermanrex.recorderApp.domain.model.notification.ServiceActionNotification
 import com.shermanrex.recorderApp.presentation.broadcastReceiver.NotificationActionBroadcastReceiver
@@ -23,10 +22,8 @@ class MyNotificationManager(private var context: Context) {
     .setSilent(true)
     .setBadgeIconType(NotificationCompat.BADGE_ICON_NONE)
 
-  fun setStopRecordNotification(time: Int) {
-    val notification =
-      notification.clearActions()
-        .setContentText(time.convertMilliSecondToTime(false) + " Recorded").build()
+  fun setStopRecordNotification(name: String) {
+    val notification = notification.clearActions().setContentText("$name Recorded").build()
     notificationManager.notify(MediaRecorderService.NOTIFICATION_ID, notification)
   }
 

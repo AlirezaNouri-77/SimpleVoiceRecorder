@@ -106,7 +106,7 @@ fun BottomSection(
           onClosePlayer = { onClosePlayer() },
           onSliderValueChange = { onSliderValueChange(it) },
           currentPosition = { currentPosition() },
-          currentPlayerState = { currentPlayerState() }
+          currentPlayerState = { currentPlayerState() },
         )
 
         else -> {

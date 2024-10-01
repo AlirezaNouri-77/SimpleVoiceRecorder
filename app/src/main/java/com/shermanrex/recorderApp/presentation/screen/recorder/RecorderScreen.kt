@@ -341,7 +341,7 @@ fun RecorderScreen(
         selectedItemCount = { viewModel.selectedItemList.size },
         onDeSelectAll = viewModel::deSelectAllItem,
         onSelectAll = viewModel::selectAllItem,
-        onDeleteSelectModeClick = viewModel::deleteSelectedRecord,
+        onDeleteSelectModeClick = viewModel::deleteRecord,
       )
 
     }

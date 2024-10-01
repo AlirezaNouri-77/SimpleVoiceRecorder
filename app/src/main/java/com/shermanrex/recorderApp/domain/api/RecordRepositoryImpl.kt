@@ -1,4 +1,4 @@
-package com.shermanrex.recorderApp.domain
+package com.shermanrex.recorderApp.domain.api
 
 import android.net.Uri
 import androidx.documentfile.provider.DocumentFile
@@ -10,5 +10,5 @@ import kotlinx.coroutines.flow.Flow
 
 interface RecordRepositoryImpl {
   suspend fun getRecords(documentFile: DocumentFile): Flow<RepositoryResult<RecordModel, Failure>>
-  suspend fun getLastRecord(targetUri: Uri): Deferred<RecordModel?>
+  suspend fun getRecordByUri(targetUri: Uri): Deferred<RecordModel?>
 }
