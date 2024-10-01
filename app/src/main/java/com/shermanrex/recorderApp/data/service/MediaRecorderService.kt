@@ -11,16 +11,17 @@ import android.os.ParcelFileDescriptor
 import androidx.core.app.ServiceCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
-import com.shermanrex.recorderApp.data.dataStore.DataStoreManager
-import com.shermanrex.recorderApp.data.storage.StorageManager
+import com.shermanrex.recorderApp.data.di.annotation.ServiceModuleQualifier
 import com.shermanrex.recorderApp.domain.model.RecordAudioSetting
 import com.shermanrex.recorderApp.domain.model.RecorderState
 import com.shermanrex.recorderApp.domain.model.notification.ServiceActionNotification
+import com.shermanrex.recorderApp.domain.useCase.datastore.UseCaseGetAudioFormat
+import com.shermanrex.recorderApp.domain.useCase.storage.UseCaseAppendFileExtension
+import com.shermanrex.recorderApp.domain.useCase.storage.UseCaseGetDocumentFileFromUri
 import com.shermanrex.recorderApp.presentation.notification.MyNotificationManager
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.BufferOverflow
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -44,16 +45,24 @@ class MediaRecorderService : LifecycleService() {
   lateinit var mediaRecorder: MediaRecorder
 
   @Inject
-  lateinit var storageManager: StorageManager
+  @ServiceModuleQualifier
+  lateinit var useCaseFileAppendFileExtension: UseCaseAppendFileExtension
 
   @Inject
-  lateinit var dataStoreManager: DataStoreManager
+  @ServiceModuleQualifier
+  lateinit var useCaseGetDocumentFileFromUri: UseCaseGetDocumentFileFromUri
+
+  @Inject
+  @ServiceModuleQualifier
+  lateinit var useCaseGetAudioFormat: UseCaseGetAudioFormat
 
   private var currentRecordFileUri: Uri = Uri.EMPTY
   private var startRecordTimeStamp = 0L
   private var currentTimer = 0
 
-  var playerEndChannel = Channel<Uri>()
+  // when the record is stop this Shareflow send the last record uri
+  private var _lastRecord = MutableSharedFlow<Uri>()
+  val lastRecord = _lastRecord.asSharedFlow()
 
   private var _recorderState = MutableStateFlow(RecorderState.IDLE)
   val recorderState = _recorderState.asStateFlow()
@@ -61,7 +70,7 @@ class MediaRecorderService : LifecycleService() {
   private var _recordTimer = MutableStateFlow(0)
   var recordTimer = _recordTimer.asStateFlow()
 
-  private var _amplitudes = MutableSharedFlow<Float>(extraBufferCapacity = 1,onBufferOverflow = BufferOverflow.DROP_OLDEST)
+  private var _amplitudes = MutableSharedFlow<Float>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
   val amplitudes = _amplitudes.asSharedFlow()
 
   override fun onBind(intent: Intent): IBinder {
@@ -155,18 +164,21 @@ class MediaRecorderService : LifecycleService() {
   }
 
   fun stopRecord() {
-    if (recorderState.value == RecorderState.STOP || recorderState.value == RecorderState.IDLE) return
-    mediaRecorder.stop()
-    mediaRecorder.reset()
-    setRecordState(RecorderState.STOP)
-    stopForeground(STOP_FOREGROUND_DETACH)
-    myNotificationManager.setStopRecordNotification(_recordTimer.value)
-    _recordTimer.value = 0
-    currentTimer = 0
     lifecycleScope.launch {
-      val format = dataStoreManager.getAudioFormat.first().format.name
-      val newUri = storageManager.appendFileExtension(currentRecordFileUri, format)
-      playerEndChannel.send(newUri)
+      if (recorderState.value == RecorderState.STOP || recorderState.value == RecorderState.IDLE) return@launch
+      val recordedFileName = useCaseGetDocumentFileFromUri(currentRecordFileUri)?.name ?: "Not Found"
+      mediaRecorder.apply {
+        stop()
+        reset()
+      }
+      setRecordState(RecorderState.STOP)
+      stopForeground(STOP_FOREGROUND_DETACH)
+      myNotificationManager.setStopRecordNotification(recordedFileName)
+      _recordTimer.value = 0
+      currentTimer = 0
+      val format = useCaseGetAudioFormat().first().format.name
+      val newUri = useCaseFileAppendFileExtension(currentRecordFileUri, format)
+      _lastRecord.emit(newUri)
     }
   }
 

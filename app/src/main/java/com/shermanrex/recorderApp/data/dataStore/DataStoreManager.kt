@@ -6,29 +6,32 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
-import com.shermanrex.recorderApp.domain.DataStoreManagerImpl
+import com.shermanrex.recorderApp.data.di.annotation.DispatcherIO
+import com.shermanrex.recorderApp.domain.api.DataStoreManagerImpl
 import com.shermanrex.recorderApp.domain.model.AudioFormat
 import com.shermanrex.recorderApp.domain.model.RecordAudioSetting
 import com.shermanrex.recorderApp.domain.model.SettingNameFormat
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 typealias SavePath = String
 
 class DataStoreManager @Inject constructor(
   private var datastore: DataStore<Preferences>,
+  @DispatcherIO private var dispatcherIO: CoroutineDispatcher,
 ) : DataStoreManagerImpl {
 
   override var getSavePath: Flow<SavePath> = datastore.data.map {
     it[SAVE_PATH_KEY] ?: ""
-  }.flowOn(Dispatchers.IO)
+  }.flowOn(dispatcherIO)
 
   override var getIsFirstTimeAppLaunch: Flow<Boolean> = datastore.data.map {
     it[IS_FIRST_TIME_APP_LAUNCH] ?: true
-  }.flowOn(Dispatchers.IO)
+  }.flowOn(dispatcherIO)
 
   override var getNameFormat: Flow<SettingNameFormat> = datastore.data.map {
     when (it[NAME_FORMAT_KEY]) {
@@ -39,13 +42,8 @@ class DataStoreManager @Inject constructor(
       null -> SettingNameFormat.FULL_DATE_TIME
       else -> SettingNameFormat.FULL_DATE_TIME
     }
-  }.flowOn(Dispatchers.IO)
+  }.flowOn(dispatcherIO)
 
-  override suspend fun writeFirstTimeAppLaunch(boolean: Boolean) {
-    datastore.edit {
-      it[IS_FIRST_TIME_APP_LAUNCH] = boolean
-    }
-  }
   override var getAudioFormat: Flow<RecordAudioSetting> = datastore.data.map {
     val format = when (it[AUDIO_FORMAT_KEY]) {
       "m4a" -> AudioFormat.M4A
@@ -58,33 +56,50 @@ class DataStoreManager @Inject constructor(
       bitrate = it[BIT_RATE_KEY] ?: if (format == AudioFormat.WAV) 1411 else 128000,
       sampleRate = it[SAMPLE_RATE_KEY] ?: 44100,
     )
-  }.flowOn(Dispatchers.IO)
+  }.flowOn(dispatcherIO)
 
+  override suspend fun writeFirstTimeAppLaunch(boolean: Boolean) {
+    withContext(dispatcherIO) {
+      datastore.edit {
+        it[IS_FIRST_TIME_APP_LAUNCH] = boolean
+      }
+    }
+  }
 
   override suspend fun writeAudioFormat(format: AudioFormat) {
-    datastore.edit {
-      it[AUDIO_FORMAT_KEY] = when (format) {
-        AudioFormat.M4A -> "m4a"
-        AudioFormat.THREEGPP -> "3gp"
-        AudioFormat.WAV -> "wav"
+    withContext(dispatcherIO) {
+      datastore.edit {
+        it[AUDIO_FORMAT_KEY] = when (format) {
+          AudioFormat.M4A -> "m4a"
+          AudioFormat.THREEGPP -> "3gp"
+          AudioFormat.WAV -> "wav"
+        }
       }
     }
   }
 
   override suspend fun writeNameFormat(id: Int) {
-    datastore.edit { it[NAME_FORMAT_KEY] = id }
+    withContext(dispatcherIO) {
+      datastore.edit { it[NAME_FORMAT_KEY] = id }
+    }
   }
 
   override suspend fun writeAudioBitrate(bitrate: Int) {
-    datastore.edit { it[BIT_RATE_KEY] = bitrate }
+    withContext(dispatcherIO) {
+      datastore.edit { it[BIT_RATE_KEY] = bitrate }
+    }
   }
 
   override suspend fun writeSampleRate(sampleRate: Int) {
-    datastore.edit { it[SAMPLE_RATE_KEY] = sampleRate }
+    withContext(dispatcherIO) {
+      datastore.edit { it[SAMPLE_RATE_KEY] = sampleRate }
+    }
   }
 
   override suspend fun writeSavePath(path: String) {
-    datastore.edit { it[SAVE_PATH_KEY] = path }
+    withContext(dispatcherIO) {
+      datastore.edit { it[SAVE_PATH_KEY] = path }
+    }
   }
 
   companion object {

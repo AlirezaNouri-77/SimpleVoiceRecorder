@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStoreFile
 import com.shermanrex.recorderApp.data.dataStore.DataStoreManager
+import com.shermanrex.recorderApp.data.di.annotation.DispatcherIO
 import com.shermanrex.recorderApp.data.repository.RecordRepository
 import com.shermanrex.recorderApp.data.service.connection.MediaPlayerServiceConnection
 import com.shermanrex.recorderApp.data.service.connection.MediaRecorderServiceConnection
@@ -15,6 +16,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Singleton
 
 @Module
@@ -23,20 +25,20 @@ object AppRecordModule {
 
   @Provides
   @Singleton
-  fun provideDataStoreManager(@ApplicationContext context: Context): DataStoreManager {
-    return DataStoreManager(datastore = provideDataStore(context))
+  fun provideDataStoreManager(dataStore: DataStore<Preferences>, @DispatcherIO coroutineDispatcher: CoroutineDispatcher): DataStoreManager {
+    return DataStoreManager(datastore = dataStore, dispatcherIO = coroutineDispatcher)
   }
 
   @Provides
   @Singleton
-  fun provideRecordRepository(@ApplicationContext context: Context): RecordRepository {
-    return RecordRepository(context = context, storageManager = provideStorageManager(context))
+  fun provideRecordRepository(@ApplicationContext context: Context, @DispatcherIO coroutineDispatcher: CoroutineDispatcher, storageManager: StorageManager): RecordRepository {
+    return RecordRepository(context = context, storageManager = storageManager, dispatcherIO = coroutineDispatcher)
   }
 
   @Provides
   @Singleton
-  fun provideStorageManager(@ApplicationContext context: Context): StorageManager {
-    return StorageManager(context = context)
+  fun provideStorageManager(@ApplicationContext context: Context, @DispatcherIO coroutineDispatcher: CoroutineDispatcher): StorageManager {
+    return StorageManager(context = context, dispatcherIO = coroutineDispatcher)
   }
 
   @Provides

@@ -3,11 +3,12 @@ package com.shermanrex.recorderApp.data.di
 import android.content.Context
 import android.media.MediaRecorder
 import android.os.Build
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.PreferenceDataStoreFactory
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.preferencesDataStoreFile
+import com.shermanrex.recorderApp.data.dataStore.DataStoreManager
+import com.shermanrex.recorderApp.data.di.annotation.ServiceModuleQualifier
 import com.shermanrex.recorderApp.data.storage.StorageManager
+import com.shermanrex.recorderApp.domain.useCase.datastore.UseCaseGetAudioFormat
+import com.shermanrex.recorderApp.domain.useCase.storage.UseCaseAppendFileExtension
+import com.shermanrex.recorderApp.domain.useCase.storage.UseCaseGetDocumentFileFromUri
 import com.shermanrex.recorderApp.presentation.notification.MyNotificationManager
 import dagger.Module
 import dagger.Provides
@@ -15,10 +16,6 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ServiceComponent
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.android.scopes.ServiceScoped
-import javax.inject.Qualifier
-
-@Qualifier
-annotation class ServiceModuleQualifier
 
 @Module
 @InstallIn(ServiceComponent::class)
@@ -33,17 +30,22 @@ object ServiceModule {
   @Provides
   @ServiceScoped
   @ServiceModuleQualifier
-  fun provideDataStore(@ApplicationContext context: Context): DataStore<Preferences> {
-    return PreferenceDataStoreFactory.create(
-      produceFile = { context.preferencesDataStoreFile("settings") }
-    )
+  fun provideUseCaseAppendFileExtension(storageManager: StorageManager): UseCaseAppendFileExtension {
+    return UseCaseAppendFileExtension(storageManager)
   }
 
   @Provides
   @ServiceScoped
   @ServiceModuleQualifier
-  fun provideStorageManager(@ApplicationContext context: Context): StorageManager {
-    return StorageManager(context = context)
+  fun provideUseCaseGetDocumentFileFromUri(storageManager: StorageManager): UseCaseGetDocumentFileFromUri {
+    return UseCaseGetDocumentFileFromUri(storageManager)
+  }
+
+  @Provides
+  @ServiceScoped
+  @ServiceModuleQualifier
+  fun provideUseCaseGetAudioFormat(dataStoreManager: DataStoreManager): UseCaseGetAudioFormat {
+    return UseCaseGetAudioFormat(dataStoreManager)
   }
 
   @Provides

@@ -5,7 +5,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.shermanrex.recorderApp.data.dataStore.DataStoreManager
+import com.shermanrex.recorderApp.domain.useCase.datastore.UseCaseGetIsFirstTimeAppLaunch
+import com.shermanrex.recorderApp.domain.useCase.datastore.UseCaseWriteFirstTimeAppLaunch
+import com.shermanrex.recorderApp.domain.useCase.datastore.UseCaseWriteSavePath
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -14,7 +16,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class PermissionViewModel @Inject constructor(
-  private var dataStoreManager: DataStoreManager,
+  private var useCaseWriteSavePath: UseCaseWriteSavePath,
+  private var useCaseWriteFirstTimeAppLaunch: UseCaseWriteFirstTimeAppLaunch,
+  private var useCaseGetIsFirstTimeAppLaunch: UseCaseGetIsFirstTimeAppLaunch,
 ) : ViewModel() {
 
   val uiState = mutableStateOf(PermissionScreenUiState.PERMISSION_GRANT)
@@ -22,16 +26,16 @@ class PermissionViewModel @Inject constructor(
 
   init {
     viewModelScope.launch {
-      isAppFirstTimeLaunch = dataStoreManager.getIsFirstTimeAppLaunch.first()
+      isAppFirstTimeLaunch = useCaseGetIsFirstTimeAppLaunch().first()
     }
   }
 
   fun writeDataStoreSavePath(savePath: String) = viewModelScope.launch(Dispatchers.IO) {
-    dataStoreManager.writeSavePath(savePath)
+    useCaseWriteSavePath(savePath)
   }
 
   fun writeFirstTimeAppLaunch(boolean: Boolean = false) = viewModelScope.launch(Dispatchers.IO) {
-    dataStoreManager.writeFirstTimeAppLaunch(boolean)
+    useCaseWriteFirstTimeAppLaunch(boolean)
   }
 
 }

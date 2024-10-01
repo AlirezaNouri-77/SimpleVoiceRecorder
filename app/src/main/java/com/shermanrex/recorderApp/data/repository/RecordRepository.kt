@@ -3,13 +3,14 @@ package com.shermanrex.recorderApp.data.repository
 import android.content.Context
 import android.net.Uri
 import androidx.documentfile.provider.DocumentFile
+import com.shermanrex.recorderApp.data.di.annotation.DispatcherIO
 import com.shermanrex.recorderApp.data.storage.StorageManager
-import com.shermanrex.recorderApp.domain.RecordRepositoryImpl
+import com.shermanrex.recorderApp.domain.api.RecordRepositoryImpl
 import com.shermanrex.recorderApp.domain.model.Failure
 import com.shermanrex.recorderApp.domain.model.RecordModel
 import com.shermanrex.recorderApp.domain.model.RepositoryResult
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -22,6 +23,7 @@ import javax.inject.Inject
 class RecordRepository @Inject constructor(
   private var context: Context,
   private var storageManager: StorageManager,
+  @DispatcherIO private var dispatcherIO: CoroutineDispatcher,
 ) : RecordRepositoryImpl {
 
   @OptIn(ExperimentalCoroutinesApi::class)
@@ -33,7 +35,7 @@ class RecordRepository @Inject constructor(
       val result = documentFile.listFiles().map { document ->
         async {
           if (document.canRead() && document.length() > 0) {
-            storageManager.getFileDetailByMediaMetaRetriever(
+            storageManager.getFileMetaData(
               document = document
             )
           } else null
@@ -46,14 +48,14 @@ class RecordRepository @Inject constructor(
         send(RepositoryResult.Failure(Failure.Empty))
       }
 
-    }.flowOn(Dispatchers.IO.limitedParallelism(30))
+    }.flowOn(dispatcherIO.limitedParallelism(30))
 
   }
 
-  override suspend fun getLastRecord(targetUri: Uri): Deferred<RecordModel?> {
-    return withContext(Dispatchers.IO) {
+  override suspend fun getRecordByUri(targetUri: Uri): Deferred<RecordModel?> {
+    return withContext(dispatcherIO) {
       val document = DocumentFile.fromSingleUri(context, targetUri)
-      async { storageManager.getFileDetailByMediaMetaRetriever(document) }
+      async { storageManager.getFileMetaData(document) }
     }
   }
 

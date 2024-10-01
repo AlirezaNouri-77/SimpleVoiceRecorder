@@ -10,11 +10,8 @@ import androidx.compose.runtime.setValue
 import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.shermanrex.recorderApp.data.dataStore.DataStoreManager
-import com.shermanrex.recorderApp.data.repository.RecordRepository
 import com.shermanrex.recorderApp.data.service.connection.MediaPlayerServiceConnection
 import com.shermanrex.recorderApp.data.service.connection.MediaRecorderServiceConnection
-import com.shermanrex.recorderApp.data.storage.StorageManager
 import com.shermanrex.recorderApp.data.util.convertTimeStampToDate
 import com.shermanrex.recorderApp.data.util.removeFileformat
 import com.shermanrex.recorderApp.domain.model.AudioFormat
@@ -29,6 +26,23 @@ import com.shermanrex.recorderApp.domain.model.notification.ServiceActionNotific
 import com.shermanrex.recorderApp.domain.model.uiState.CurrentMediaPlayerState
 import com.shermanrex.recorderApp.domain.model.uiState.RecorderScreenUiEvent
 import com.shermanrex.recorderApp.domain.model.uiState.RecorderScreenUiState
+import com.shermanrex.recorderApp.domain.useCase.datastore.UseCaseGetAudioFormat
+import com.shermanrex.recorderApp.domain.useCase.datastore.UseCaseGetNameFormat
+import com.shermanrex.recorderApp.domain.useCase.datastore.UseCaseGetSavePath
+import com.shermanrex.recorderApp.domain.useCase.datastore.UseCaseWriteAudioBitrate
+import com.shermanrex.recorderApp.domain.useCase.datastore.UseCaseWriteAudioFormat
+import com.shermanrex.recorderApp.domain.useCase.datastore.UseCaseWriteNameFormat
+import com.shermanrex.recorderApp.domain.useCase.datastore.UseCaseWriteSampleRate
+import com.shermanrex.recorderApp.domain.useCase.datastore.UseCaseWriteSavePath
+import com.shermanrex.recorderApp.domain.useCase.repository.UseCaseGetRecordByUri
+import com.shermanrex.recorderApp.domain.useCase.repository.UseCaseGetRecords
+import com.shermanrex.recorderApp.domain.useCase.storage.UseCaseAppendFileExtension
+import com.shermanrex.recorderApp.domain.useCase.storage.UseCaseCreateDocumentFile
+import com.shermanrex.recorderApp.domain.useCase.storage.UseCaseDeleteRecord
+import com.shermanrex.recorderApp.domain.useCase.storage.UseCaseGetDocumentTreeFileFromUri
+import com.shermanrex.recorderApp.domain.useCase.storage.UseCaseGetFileDescriptorByUri
+import com.shermanrex.recorderApp.domain.useCase.storage.UseCaseGetRenamedRecordName
+import com.shermanrex.recorderApp.domain.useCase.storage.UseCaseRenameRecord
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -38,27 +52,41 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class AppRecorderViewModel @Inject constructor(
   var serviceConnection: MediaRecorderServiceConnection,
-  private var dataStoreManager: DataStoreManager,
-  private var recordRepository: RecordRepository,
   private val mediaPlayerServiceConnection: MediaPlayerServiceConnection,
-  private val storageManager: StorageManager,
+  private var useCaseGetAudioFormat: UseCaseGetAudioFormat,
+  private var useCaseGetNameFormat: UseCaseGetNameFormat,
+  private var useCaseWriteSavePath: UseCaseWriteSavePath,
+  private var useCaseGetSavePath: UseCaseGetSavePath,
+  private var useCaseWriteAudioBitrate: UseCaseWriteAudioBitrate,
+  private var useCaseWriteAudioFormat: UseCaseWriteAudioFormat,
+  private var useCaseWriteNameFormat: UseCaseWriteNameFormat,
+  private var useCaseWriteSampleRate: UseCaseWriteSampleRate,
+  private var useCaseGetRecords: UseCaseGetRecords,
+  private var useCaseGetRecordByUri: UseCaseGetRecordByUri,
+  private var useCaseDeleteRecord: UseCaseDeleteRecord,
+  private var useCaseRenameRecord: UseCaseRenameRecord,
+  private var useCaseAppendFileExtension: UseCaseAppendFileExtension,
+  private var useCaseGetRenamedRecordName: UseCaseGetRenamedRecordName,
+  private var useCaseCreateDocumentFile: UseCaseCreateDocumentFile,
+  private var useCaseGetFileDescriptorByUri: UseCaseGetFileDescriptorByUri,
+  private var useCaseGetDocumentTreeFileFromUri: UseCaseGetDocumentTreeFileFromUri,
 ) : ViewModel() {
 
   var screenRecorderScreenUiState = mutableStateOf(RecorderScreenUiState.LOADING)
 
   var recordDataList = mutableStateListOf<RecordModel>()
   var amplitudesList = mutableStateListOf<Float>()
+  var selectedItemList = mutableStateListOf<RecordModel>()
 
   var currentAudioFormat by mutableStateOf(RecordAudioSetting.Empty)
-  var selectedItemList = mutableStateListOf<RecordModel>()
 
   private var _uiEvent = MutableSharedFlow<RecorderScreenUiEvent>()
   var uiEvent = _uiEvent.asSharedFlow()
@@ -85,47 +113,57 @@ class AppRecorderViewModel @Inject constructor(
     observeMediaPlayerCurrentPosition()
   }
 
-  suspend fun getDataStoreNameFormat(): SettingNameFormat = dataStoreManager.getNameFormat.first()
+  suspend fun getDataStoreNameFormat(): SettingNameFormat = useCaseGetNameFormat().first()
 
-  suspend fun getDataStoreSavePath(): String = dataStoreManager.getSavePath.first()
+  suspend fun getDataStoreSavePath(): String = useCaseGetSavePath().first()
 
-  fun writeAudioBitrate(bitrate: Int) = viewModelScope.launch(Dispatchers.IO) {
-    dataStoreManager.writeAudioBitrate(bitrate)
+  fun writeAudioBitrate(bitrate: Int) = viewModelScope.launch {
+    useCaseWriteAudioBitrate(bitrate)
   }
 
-  fun writeAudioFormat(audioFormat: AudioFormat) = viewModelScope.launch(Dispatchers.IO) {
-    dataStoreManager.writeAudioFormat(audioFormat)
-    dataStoreManager.writeSampleRate(audioFormat.defaultSampleRate)
-    dataStoreManager.writeAudioBitrate(audioFormat.defaultBitRate)
+  fun writeAudioFormat(audioFormat: AudioFormat) = viewModelScope.launch {
+    useCaseWriteAudioFormat(audioFormat)
+    useCaseWriteSampleRate(audioFormat.defaultSampleRate)
+    useCaseWriteAudioBitrate(audioFormat.defaultBitRate)
   }
 
-  fun writeSampleRate(sampleRate: Int) = viewModelScope.launch(Dispatchers.IO) {
-    dataStoreManager.writeSampleRate(sampleRate)
+  fun writeSampleRate(sampleRate: Int) = viewModelScope.launch {
+    useCaseWriteSampleRate(sampleRate)
   }
 
   fun writeDataStoreNameFormat(nameFormat: SettingNameFormat) {
     viewModelScope.launch {
-      dataStoreManager.writeNameFormat(nameFormat.id)
+      useCaseWriteNameFormat(nameFormat.id)
     }
   }
 
   fun deleteRecord(recordModel: RecordModel) {
     viewModelScope.launch {
       if (mediaPlayerState.isPlaying) stopPlayAudio()
-      if (storageManager.deleteRecord(recordModel.path)) {
+      if (useCaseDeleteRecord(recordModel.path)) {
         recordDataList.remove(recordModel)
-        if (recordDataList.size == 0) screenRecorderScreenUiState.value = RecorderScreenUiState.EMPTY
       }
+      if (recordDataList.size == 0) screenRecorderScreenUiState.value = RecorderScreenUiState.EMPTY
+    }
+  }
+
+  fun deleteRecord() {
+    if (selectedItemList.size == 0) return
+    viewModelScope.launch {
+      selectedItemList.forEach {
+        deleteRecord(it)
+      }
+      selectedItemList.clear()
     }
   }
 
   fun renameRecord(targetItem: RecordModel, newName: String) {
     viewModelScope.launch {
-      val renameUri = storageManager.renameRecord(targetItem.path, newName)
-      val result = storageManager.appendFileExtension(renameUri, targetItem.format)
+      val renameUri = useCaseRenameRecord(targetItem.path, newName)
+      val result = useCaseAppendFileExtension(renameUri, targetItem.format)
       if (result == Uri.EMPTY) return@launch
 
-      val nameAfterRename = storageManager.getRenameRecordName(result)
+      val nameAfterRename = useCaseGetRenamedRecordName(result)
       val targetItemIndex = recordDataList.indexOf(targetItem)
       val updateRecord = recordDataList[targetItemIndex].copy(
         path = result,
@@ -139,15 +177,15 @@ class AppRecorderViewModel @Inject constructor(
   fun startRecord(customFileName: String) {
     viewModelScope.launch {
 
-      val savePath = dataStoreManager.getSavePath.first()
-      val nameFormat = dataStoreManager.getNameFormat.first()
-      val audioRecordSetting = dataStoreManager.getAudioFormat.first()
+      val savePath = useCaseGetSavePath().first()
+      val nameFormat = useCaseGetNameFormat().first()
+      val audioRecordSetting = useCaseGetAudioFormat().first()
 
       val fileName = customFileName.ifEmpty { convertTimeStampToDate(nameFormat.pattern) }
-      val document = storageManager.createDocumentFile(fileName = fileName, savePath = savePath)
+      val document = useCaseCreateDocumentFile(fileName = fileName, savePath = savePath)
 
       if (document != null) {
-        val fileDescriptor = storageManager.getSavePath(document)
+        val fileDescriptor = useCaseGetFileDescriptorByUri(document.uri)
         if (fileDescriptor != null) {
           sendActionToService(ServiceActionNotification.START)
           serviceConnection.mService.startRecord(
@@ -156,6 +194,7 @@ class AppRecorderViewModel @Inject constructor(
             fileSaveUri = document.uri,
           )
         }
+        fileDescriptor?.close()
       } else {
         setUiEvent(RecorderScreenUiEvent.SAF_PATH)
       }
@@ -163,10 +202,12 @@ class AppRecorderViewModel @Inject constructor(
   }
 
 
-  fun stopRecord() = serviceConnection.mService.stopRecord()
+  fun stopRecord() = viewModelScope.launch {
+    serviceConnection.mService.stopRecord()
+  }
 
-  fun writeDataStoreSavePath(savePath: String, shouldUpdateList: Boolean = false) = viewModelScope.launch(Dispatchers.IO) {
-    dataStoreManager.writeSavePath(savePath)
+  fun writeDataStoreSavePath(savePath: String, shouldUpdateList: Boolean = false) = viewModelScope.launch {
+    useCaseWriteSavePath(savePath)
     if (shouldUpdateList) getRecords()
   }
 
@@ -189,20 +230,12 @@ class AppRecorderViewModel @Inject constructor(
     amplitudesList.clear()
   }
 
-  fun deleteSelectedRecord() {
-    if (selectedItemList.size == 0) return
-    viewModelScope.launch {
-      selectedItemList.forEach {
-        deleteRecord(it)
-      }
-      selectedItemList.clear()
-    }
-  }
-
-  fun selectAllItem() = viewModelScope.launch {
+  fun selectAllItem() = viewModelScope.launch(Dispatchers.Default) {
     recordDataList.forEach {
       if (it !in selectedItemList) {
-        selectedItemList.add(it)
+        viewModelScope.launch {
+          selectedItemList.add(it)
+        }
       }
     }
   }
@@ -221,31 +254,29 @@ class AppRecorderViewModel @Inject constructor(
   }
 
   private fun getRecords() = viewModelScope.launch {
-    val savePath = dataStoreManager.getSavePath.first()
-    val documentFile = storageManager.getSavePathDocumentFile(savePath.toUri())
+    val savePath = useCaseGetSavePath().first()
+    val documentFile = useCaseGetDocumentTreeFileFromUri(savePath.toUri())
 
     if (documentFile == null) {
       setUiEvent(RecorderScreenUiEvent.SAF_PATH)
       return@launch
     }
 
-    recordRepository.getRecords(documentFile)
+    useCaseGetRecords(documentFile)
       .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), RepositoryResult.Loading)
-      .collectLatest { result ->
-        viewModelScope.launch {
-          when (result) {
-            is RepositoryResult.Success -> {
-              recordDataList.clear()
-              recordDataList.addAll(result.data)
-              screenRecorderScreenUiState.value = RecorderScreenUiState.DATA
-            }
-
-            is RepositoryResult.Failure -> when (result.error) {
-              Failure.Empty -> screenRecorderScreenUiState.value = RecorderScreenUiState.EMPTY
-            }
-
-            RepositoryResult.Loading -> screenRecorderScreenUiState.value = RecorderScreenUiState.LOADING
+      .collect { result ->
+        when (result) {
+          is RepositoryResult.Success -> {
+            recordDataList.clear()
+            recordDataList.addAll(result.data)
+            screenRecorderScreenUiState.value = RecorderScreenUiState.DATA
           }
+
+          is RepositoryResult.Failure -> when (result.error) {
+            Failure.Empty -> screenRecorderScreenUiState.value = RecorderScreenUiState.EMPTY
+          }
+
+          RepositoryResult.Loading -> screenRecorderScreenUiState.value = RecorderScreenUiState.LOADING
         }
       }
   }
@@ -261,41 +292,33 @@ class AppRecorderViewModel @Inject constructor(
   }
 
   private fun initialAudioSetting() = viewModelScope.launch {
-    currentAudioFormat = dataStoreManager.getAudioFormat.first()
+    currentAudioFormat = useCaseGetAudioFormat().first()
   }
 
   private fun observeMediaRecorderService() {
-    viewModelScope.launch(Dispatchers.IO) {
+    viewModelScope.launch {
       val isServiceBind = serviceConnection.bindService()
       if (isServiceBind) {
         launch {
           serviceConnection.mService.amplitudes.collect {
-            viewModelScope.launch {
-              amplitudesList.add(it)
-            }
+            amplitudesList.add(it)
           }
         }
         launch {
           serviceConnection.mService.recordTimer.collectLatest { time ->
-            viewModelScope.launch {
-              _recordTime.value = time
-            }
+            _recordTime.update { time }
           }
         }
         launch {
           serviceConnection.mService.recorderState.collectLatest { recordState ->
-            viewModelScope.launch {
-              recorderState = recordState
-            }
+            recorderState = recordState
           }
         }
         launch {
-          serviceConnection.mService.playerEndChannel.receiveAsFlow().collect { uri ->
-            viewModelScope.launch {
-              recordRepository.getLastRecord(uri).await()?.let { recordDataList.add(0, it) }
-              if (recordDataList.size != 0) screenRecorderScreenUiState.value = RecorderScreenUiState.DATA
-              amplitudesList.clear()
-            }
+          serviceConnection.mService.lastRecord.collect { uri ->
+            useCaseGetRecordByUri(uri).await()?.let { recordDataList.add(0, it) }
+            if (recordDataList.size != 0) screenRecorderScreenUiState.value = RecorderScreenUiState.DATA
+            amplitudesList.clear()
           }
         }
       }
