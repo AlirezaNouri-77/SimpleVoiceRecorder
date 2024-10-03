@@ -58,6 +58,12 @@ dependencies {
   implementation(libs.androidx.material3)
   implementation(libs.androidx.lifecycle.service)
 
+  testImplementation(libs.junit.junit)
+  androidTestImplementation(libs.google.truth)
+
+
+  debugImplementation(libs.test.core)
+
   ksp(libs.androidx.hilt.compiler)
 
   testImplementation(libs.junit.jupiter)
