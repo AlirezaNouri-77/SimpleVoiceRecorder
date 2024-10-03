@@ -39,7 +39,6 @@ class DataStoreManager @Inject constructor(
       2 -> SettingNameFormat.ASK_ON_RECORD
       3 -> SettingNameFormat.SEMI_DATE_TIME
       4 -> SettingNameFormat.TIME
-      null -> SettingNameFormat.FULL_DATE_TIME
       else -> SettingNameFormat.FULL_DATE_TIME
     }
   }.flowOn(dispatcherIO)
