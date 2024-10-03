@@ -57,9 +57,9 @@ fun DeleteDialog(
         Text(text = "Are you sure about delete this audio file?", fontSize = 15.sp)
         Text(text = "${item.name} will be delete", fontSize = 14.sp)
         Row(
-          modifier = Modifier.fillMaxWidth(),
+          modifier = Modifier.fillMaxWidth(0.9f),
           verticalAlignment = Alignment.CenterVertically,
-          horizontalArrangement = Arrangement.SpaceEvenly,
+          horizontalArrangement = Arrangement.SpaceAround,
         ) {
           Button(
             onClick = { onDismiss() },

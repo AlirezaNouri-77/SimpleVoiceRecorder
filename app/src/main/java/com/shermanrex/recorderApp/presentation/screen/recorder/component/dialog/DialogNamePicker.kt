@@ -3,10 +3,8 @@ package com.shermanrex.recorderApp.presentation.screen.recorder.component.dialog
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -102,10 +100,10 @@ fun DialogNamePicker(
           ),
         )
         Row(
+          modifier = Modifier.fillMaxWidth(0.9f),
           verticalAlignment = Alignment.CenterVertically,
           horizontalArrangement = Arrangement.SpaceAround,
         ) {
-          Spacer(modifier = Modifier.width(10.dp))
           Button(
             colors = ButtonDefaults.buttonColors(
               containerColor = Color.Transparent,
