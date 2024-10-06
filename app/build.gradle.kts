@@ -8,7 +8,7 @@ plugins {
 
 android {
   namespace = "com.shermanrex.recorderApp"
-  compileSdk = 34
+  compileSdk = 35
 
   defaultConfig {
     applicationId = "com.shermanrex.recorderApp"

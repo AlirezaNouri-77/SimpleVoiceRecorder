@@ -10,6 +10,7 @@ import com.shermanrex.recorderApp.domain.useCase.datastore.UseCaseWriteFirstTime
 import com.shermanrex.recorderApp.domain.useCase.datastore.UseCaseWriteSavePath
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -21,25 +22,29 @@ class PermissionViewModel @Inject constructor(
   private var useCaseGetIsFirstTimeAppLaunch: UseCaseGetIsFirstTimeAppLaunch,
 ) : ViewModel() {
 
-  val uiState = mutableStateOf(PermissionScreenUiState.PERMISSION_GRANT)
-  var isAppFirstTimeLaunch by mutableStateOf(false)
+  val uiState = mutableStateOf(PermissionScreenUiState.INITIAL)
 
   init {
     viewModelScope.launch {
-      isAppFirstTimeLaunch = useCaseGetIsFirstTimeAppLaunch().first()
+      delay(1500L)
+      if (useCaseGetIsFirstTimeAppLaunch().first()) {
+        uiState.value = PermissionScreenUiState.NO_PERMISSION_GRANT
+      } else {
+        uiState.value = PermissionScreenUiState.PERMISSION_GRANT
+      }
     }
   }
 
-  fun writeDataStoreSavePath(savePath: String) = viewModelScope.launch(Dispatchers.IO) {
+  fun writeDataStoreSavePath(savePath: String) = viewModelScope.launch {
     useCaseWriteSavePath(savePath)
   }
 
-  fun writeFirstTimeAppLaunch(boolean: Boolean = false) = viewModelScope.launch(Dispatchers.IO) {
+  fun writeFirstTimeAppLaunch(boolean: Boolean = false) = viewModelScope.launch {
     useCaseWriteFirstTimeAppLaunch(boolean)
   }
 
 }
 
 enum class PermissionScreenUiState {
-  PERMISSION_GRANT, INITIAL
+  PERMISSION_GRANT, NO_PERMISSION_GRANT, INITIAL
 }
