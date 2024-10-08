@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<animated-vector
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:drawable="@drawable/icon_waveform">
+
+    <target
+        android:animation="@animator/path_one_animator"
+        android:name="pathOne"/>
+
+    <target
+        android:animation="@animator/path_two_animator"
+        android:name="pathTwo"/>
+
+    <target
+        android:animation="@animator/path_three_animator"
+        android:name="pathThree"/>
+
+    <target
+        android:animation="@animator/path_four_animator"
+        android:name="pathFour"/>
+
+    <target
+        android:animation="@animator/path_five_animator"
+        android:name="pathFive"/>
+
+</animated-vector>

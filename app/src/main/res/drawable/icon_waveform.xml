@@ -1,0 +1,59 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="50dp"
+    android:height="50dp"
+    android:viewportWidth="256"
+    android:viewportHeight="256">
+
+    <group
+        android:pivotX="128"
+        android:pivotY="128"
+        android:scaleX="0.4"
+        android:scaleY="0.4">
+        <path
+            android:name="pathOne"
+            android:fillColor="@color/splashForeground"
+            android:pathData="M48,96L48,160"
+            android:strokeWidth="24"
+            android:strokeColor="@color/splashForeground"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round" />
+
+        <path
+            android:name="pathTwo"
+            android:fillColor="@color/splashForeground"
+            android:pathData="M88,32L88,204"
+            android:strokeWidth="24"
+            android:strokeColor="@color/splashForeground"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round" />
+
+        <path
+            android:name="pathThree"
+            android:fillColor="@color/splashForeground"
+            android:pathData="M128,64L128,192"
+            android:strokeWidth="24"
+            android:strokeColor="@color/splashForeground"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round" />
+
+        <path
+            android:name="pathFour"
+            android:fillColor="@color/splashForeground"
+            android:pathData="M168,96L168,160"
+            android:strokeWidth="24"
+            android:strokeColor="@color/splashForeground"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round" />
+
+        <path
+            android:name="pathFive"
+            android:fillColor="@color/splashForeground"
+            android:pathData="M208,80L208,176"
+            android:strokeWidth="24"
+            android:strokeColor="@color/splashForeground"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round" />
+
+    </group>
+
+</vector>
