@@ -1,16 +1,14 @@
 package com.shermanrex.recorderApp.presentation.screen.permision
 
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.shermanrex.recorderApp.domain.useCase.datastore.UseCaseGetIsFirstTimeAppLaunch
 import com.shermanrex.recorderApp.domain.useCase.datastore.UseCaseWriteFirstTimeAppLaunch
 import com.shermanrex.recorderApp.domain.useCase.datastore.UseCaseWriteSavePath
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -22,17 +20,29 @@ class PermissionViewModel @Inject constructor(
   private var useCaseGetIsFirstTimeAppLaunch: UseCaseGetIsFirstTimeAppLaunch,
 ) : ViewModel() {
 
-  val uiState = mutableStateOf(PermissionScreenUiState.INITIAL)
+  private var _uiState = MutableStateFlow(PermissionScreenUiState.INITIAL)
+  var uiState = _uiState.asStateFlow()
+
+  var removeSplashScreen = mutableStateOf(false)
 
   init {
     viewModelScope.launch {
-      delay(1500L)
-      if (useCaseGetIsFirstTimeAppLaunch().first()) {
-        uiState.value = PermissionScreenUiState.NO_PERMISSION_GRANT
+      val isFirstTime = useCaseGetIsFirstTimeAppLaunch().first()
+      if (isFirstTime) {
+        viewModelScope.launch {
+          _uiState.value = PermissionScreenUiState.NO_PERMISSION_GRANT
+        }
       } else {
-        uiState.value = PermissionScreenUiState.PERMISSION_GRANT
+        viewModelScope.launch {
+          _uiState.value = PermissionScreenUiState.PERMISSION_GRANT
+        }
       }
+      removeSplashScreen.value = true
     }
+  }
+
+  fun setUiState(permissionScreenUiState: PermissionScreenUiState)  {
+    _uiState.value = permissionScreenUiState
   }
 
   fun writeDataStoreSavePath(savePath: String) = viewModelScope.launch {
