@@ -14,22 +14,26 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
-import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.shermanrex.recorderApp.domain.api.MySplashScreenImpl
 import com.shermanrex.recorderApp.presentation.screen.permision.PermissionScreen
 import com.shermanrex.recorderApp.presentation.screen.permision.PermissionScreenUiState
 import com.shermanrex.recorderApp.presentation.screen.permision.PermissionViewModel
 import com.shermanrex.recorderApp.presentation.screen.recorder.RecorderScreen
+import com.shermanrex.recorderApp.presentation.splashScreen.MySplashScreen
 import com.shermanrex.recorderApp.presentation.ui.theme.AppRecorderTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class MainActivity : ComponentActivity() {
+class MainActivity : ComponentActivity(), MySplashScreenImpl by MySplashScreen() {
   override fun onCreate(savedInstanceState: Bundle?) {
 
     val viewmodel: PermissionViewModel by viewModels<PermissionViewModel>()
 
-    installSplashScreen().setKeepOnScreenCondition { !viewmodel.removeSplashScreen.value }
+    setSplashScreen(activity = this)
+    setAnimationWhenSplashEnd()
+    setKeepShow { viewmodel.removeSplashScreen.value }
+
     enableEdgeToEdge(
       statusBarStyle = SystemBarStyle.light(Color.Transparent.toArgb(), Color.Transparent.toArgb()),
       navigationBarStyle = SystemBarStyle.light(Color.Transparent.toArgb(), Color.Transparent.toArgb()),
