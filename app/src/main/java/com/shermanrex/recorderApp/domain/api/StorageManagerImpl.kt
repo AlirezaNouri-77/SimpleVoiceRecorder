@@ -8,7 +8,7 @@ import com.shermanrex.recorderApp.domain.model.RecordModel
 interface StorageManagerImpl {
   suspend fun getFileDescriptorByUri(uri: Uri): ParcelFileDescriptor?
   suspend fun deleteRecord(uri: Uri): Boolean
-  suspend fun createDocumentFile(fileName: String, savePath: String): DocumentFile?
+  suspend fun createFileByDocumentFile(fileName: String, savePath: String): DocumentFile?
   suspend fun renameRecord(uri: Uri, newName: String): Uri
   suspend fun appendFileExtension(uri: Uri, fileFormat: String): Uri
   suspend fun getFileMetaData(document: DocumentFile?): RecordModel?

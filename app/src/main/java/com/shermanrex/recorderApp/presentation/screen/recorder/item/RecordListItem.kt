@@ -33,7 +33,7 @@ import androidx.compose.ui.unit.sp
 import com.shermanrex.recorderApp.data.util.convertByteToReadableSize
 import com.shermanrex.recorderApp.data.util.convertMilliSecondToTime
 import com.shermanrex.recorderApp.data.util.convertToKbps
-import com.shermanrex.recorderApp.data.util.convertToKhz
+import com.shermanrex.recorderApp.data.util.convertHzToKhz
 import com.shermanrex.recorderApp.domain.model.RecordModel
 import com.shermanrex.recorderApp.presentation.ui.theme.AppRecorderTheme
 
@@ -89,7 +89,7 @@ fun RecordListItem(
             maxLines = 2,
           )
           Text(
-            text = "${data.bitrate.convertToKbps()}, ${data.size.convertByteToReadableSize()}, ${data.sampleRate.convertToKhz()}, ${data.format}",
+            text = "${data.bitrate.convertToKbps()}, ${data.size.convertByteToReadableSize()}, ${data.sampleRate.convertHzToKhz()}, ${data.format}",
             fontSize = 11.sp,
             fontWeight = FontWeight.Light,
             color = MaterialTheme.colorScheme.onPrimary,

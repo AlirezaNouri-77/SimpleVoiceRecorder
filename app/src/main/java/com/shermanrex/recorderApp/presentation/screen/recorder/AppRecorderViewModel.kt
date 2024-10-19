@@ -13,7 +13,7 @@ import androidx.lifecycle.viewModelScope
 import com.shermanrex.recorderApp.data.service.connection.MediaPlayerServiceConnection
 import com.shermanrex.recorderApp.data.service.connection.MediaRecorderServiceConnection
 import com.shermanrex.recorderApp.data.util.convertTimeStampToDate
-import com.shermanrex.recorderApp.data.util.removeFileformat
+import com.shermanrex.recorderApp.data.util.removeFileFormat
 import com.shermanrex.recorderApp.domain.model.AudioFormat
 import com.shermanrex.recorderApp.domain.model.DropDownMenuStateUi
 import com.shermanrex.recorderApp.domain.model.Failure
@@ -167,7 +167,7 @@ class AppRecorderViewModel @Inject constructor(
       val targetItemIndex = recordDataList.indexOf(targetItem)
       val updateRecord = recordDataList[targetItemIndex].copy(
         path = result,
-        name = nameAfterRename.removeFileformat()
+        name = nameAfterRename.removeFileFormat()
       )
       recordDataList.set(index = targetItemIndex, element = updateRecord)
     }

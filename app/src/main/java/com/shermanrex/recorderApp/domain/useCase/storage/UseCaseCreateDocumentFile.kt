@@ -8,6 +8,6 @@ class UseCaseCreateDocumentFile @Inject constructor(
   private var storageManager: StorageManager,
 ) {
   suspend operator fun invoke(fileName: String, savePath: String): DocumentFile? {
-    return storageManager.createDocumentFile(fileName = fileName, savePath = savePath)
+    return storageManager.createFileByDocumentFile(fileName = fileName, savePath = savePath)
   }
 }

@@ -14,7 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.shermanrex.recorderApp.data.util.bitToKbps
+import com.shermanrex.recorderApp.data.util.convertToKbps
 
 @Composable
 fun BitRateSection(
@@ -42,7 +42,7 @@ fun BitRateSection(
           ),
           border = BorderStroke(0.dp, Color.Transparent),
           label = {
-            Text(text = item.bitToKbps(), fontWeight = FontWeight.Medium, fontSize = 14.sp)
+            Text(text = item.convertToKbps(), fontWeight = FontWeight.Medium, fontSize = 14.sp)
           },
         )
       }

@@ -35,9 +35,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.shermanrex.presentation.screen.component.util.NoRipple
 import com.shermanrex.recorderApp.R
-import com.shermanrex.recorderApp.data.util.bitToKbps
+import com.shermanrex.recorderApp.data.util.convertToKbps
 import com.shermanrex.recorderApp.data.util.convertMilliSecondToTime
-import com.shermanrex.recorderApp.data.util.convertToKhz
+import com.shermanrex.recorderApp.data.util.convertHzToKhz
 import com.shermanrex.recorderApp.domain.model.AudioFormat
 import com.shermanrex.recorderApp.domain.model.RecordAudioSetting
 import com.shermanrex.recorderApp.domain.model.RecorderState
@@ -190,8 +190,8 @@ fun TopSection(
         )
         Text(
           text = "${currentAudioSetting.format.name.uppercase()}," +
-               " ${currentAudioSetting.bitrate.bitToKbps()}," +
-               " ${currentAudioSetting.sampleRate.convertToKhz()}",
+               " ${currentAudioSetting.bitrate.convertToKbps()}," +
+               " ${currentAudioSetting.sampleRate.convertHzToKhz()}",
           fontSize = 12.sp,
           textAlign = TextAlign.Center,
           fontWeight = FontWeight.Medium,

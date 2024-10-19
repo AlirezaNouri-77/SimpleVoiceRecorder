@@ -14,7 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.shermanrex.recorderApp.data.util.convertToKhz
+import com.shermanrex.recorderApp.data.util.convertHzToKhz
 
 @Composable
 fun SampleRateSection(
@@ -42,7 +42,7 @@ fun SampleRateSection(
           ),
           border = BorderStroke(0.dp, Color.Transparent),
           label = {
-            Text(text = item.convertToKhz(), fontWeight = FontWeight.Medium, fontSize = 14.sp)
+            Text(text = item.convertHzToKhz(), fontWeight = FontWeight.Medium, fontSize = 14.sp)
           },
         )
       }

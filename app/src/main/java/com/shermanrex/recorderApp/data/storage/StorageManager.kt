@@ -9,7 +9,7 @@ import android.provider.DocumentsContract
 import androidx.documentfile.provider.DocumentFile
 import com.shermanrex.recorderApp.data.di.annotation.DispatcherIO
 import com.shermanrex.recorderApp.data.util.getFileFormat
-import com.shermanrex.recorderApp.data.util.removeFileformat
+import com.shermanrex.recorderApp.data.util.removeFileFormat
 import com.shermanrex.recorderApp.domain.api.StorageManagerImpl
 import com.shermanrex.recorderApp.domain.model.RecordModel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -28,7 +28,7 @@ class StorageManager @Inject constructor(
     }
   }
 
-  override suspend fun createDocumentFile(fileName: String, savePath: String): DocumentFile? {
+  override suspend fun createFileByDocumentFile(fileName: String, savePath: String): DocumentFile? {
     return withContext(dispatcherIO) {
       val document = DocumentFile.fromTreeUri(context, Uri.parse(savePath))
       document?.createFile("audio/*", fileName)
@@ -51,7 +51,7 @@ class StorageManager @Inject constructor(
 
   override suspend fun getDocumentFileFromUri(uri: Uri): DocumentFile? {
     return withContext(dispatcherIO) {
-      DocumentFile.fromSingleUri(context, uri)
+      kotlin.runCatching { DocumentFile.fromSingleUri(context, uri) }.getOrNull()
     }
   }
 
@@ -78,33 +78,36 @@ class StorageManager @Inject constructor(
     document: DocumentFile?,
   ): RecordModel? {
     return withContext(dispatcherIO) {
-      val mediaMeta = MediaMetadataRetriever().also { it.setDataSource(context, document?.uri) }
+      runCatching {
 
-      mediaMeta.use {
+        val mediaMeta = MediaMetadataRetriever().also { it.setDataSource(context, document?.uri) }
 
-        val duration = mediaMeta.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toInt() ?: 0
-        val date = mediaMeta.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DATE) ?: ""
-        val bitrate = mediaMeta.extractMetadata(MediaMetadataRetriever.METADATA_KEY_BITRATE)?.toInt() ?: 0
-        val sampleRate = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-          mediaMeta.extractMetadata(MediaMetadataRetriever.METADATA_KEY_SAMPLERATE)
-            ?.toInt() ?: 0
-        } else 0
+        mediaMeta.use {
 
-        return@withContext if (duration > 500 && document != null) {
-          RecordModel(
-            path = document.uri,
-            fullName = document.name!!,
-            name = document.name!!.removeFileformat(),
-            format = document.name!!.getFileFormat(),
-            duration = duration,
-            bitrate = bitrate,
-            date = date,
-            size = document.length(),
-            sampleRate = sampleRate,
-          )
-        } else null
+          val duration = mediaMeta.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toInt() ?: 0
+          val date = mediaMeta.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DATE) ?: ""
+          val bitrate = mediaMeta.extractMetadata(MediaMetadataRetriever.METADATA_KEY_BITRATE)?.toInt() ?: 0
+          val sampleRate = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            mediaMeta.extractMetadata(MediaMetadataRetriever.METADATA_KEY_SAMPLERATE)
+              ?.toInt() ?: 0
+          } else 0
 
-      }
+          return@withContext if (duration > 500 && document != null) {
+            RecordModel(
+              path = document.uri,
+              fullName = document.name!!,
+              name = document.name!!.removeFileFormat(),
+              format = document.name!!.getFileFormat(),
+              duration = duration,
+              bitrate = bitrate,
+              date = date,
+              size = document.length(),
+              sampleRate = sampleRate,
+            )
+          } else null
+
+        }
+      }.getOrNull()
     }
 
   }
