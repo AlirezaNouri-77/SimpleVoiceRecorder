@@ -34,7 +34,7 @@ class RecordRepository @Inject constructor(
 
       val result = documentFile.listFiles().map { document ->
         async {
-          if (document.canRead() && document.length() > 0) {
+          if (document.canRead() && document.isFile && document.length() > 0) {
             storageManager.getFileMetaData(
               document = document
             )
