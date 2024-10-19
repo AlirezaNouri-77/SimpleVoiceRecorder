@@ -3,6 +3,7 @@ package com.shermanrex.recorderApp.data.di
 import com.shermanrex.recorderApp.data.dataStore.DataStoreManager
 import com.shermanrex.recorderApp.data.repository.RecordRepository
 import com.shermanrex.recorderApp.data.storage.StorageManager
+import com.shermanrex.recorderApp.data.util.GetMetaData
 import com.shermanrex.recorderApp.domain.useCase.datastore.UseCaseGetAudioFormat
 import com.shermanrex.recorderApp.domain.useCase.datastore.UseCaseGetIsFirstTimeAppLaunch
 import com.shermanrex.recorderApp.domain.useCase.datastore.UseCaseGetNameFormat
@@ -74,8 +75,8 @@ object StorageUseCase {
   }
 
   @Provides
-  fun provideUseCaseGetFileMetaData(storageManager: StorageManager): UseCaseGetFileMetaData {
-    return UseCaseGetFileMetaData(storageManager)
+  fun provideUseCaseGetFileMetaData(getMetaData: GetMetaData): UseCaseGetFileMetaData {
+    return UseCaseGetFileMetaData(getMetaData)
   }
 
   @Provides

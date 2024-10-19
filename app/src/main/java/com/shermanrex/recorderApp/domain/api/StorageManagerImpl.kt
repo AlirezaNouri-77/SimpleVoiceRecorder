@@ -11,7 +11,6 @@ interface StorageManagerImpl {
   suspend fun createFileByDocumentFile(fileName: String, savePath: String): DocumentFile?
   suspend fun renameRecord(uri: Uri, newName: String): Uri
   suspend fun appendFileExtension(uri: Uri, fileFormat: String): Uri
-  suspend fun getFileMetaData(document: DocumentFile?): RecordModel?
   suspend fun getRenamedRecordName(uri: Uri): String
   suspend fun getDocumentTreeFileFromUri(uri: Uri): DocumentFile?
   suspend fun getDocumentFileFromUri(uri: Uri): DocumentFile?

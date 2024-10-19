@@ -176,36 +176,4 @@ class StorageManagerTest {
     assertThat(result).isNotEqualTo("")
   }
 
-  @Test
-  fun getFileMetaData_return_recordModel_if_documentFile_is_not_null() = runTest {
-    val documentFile = mockk<DocumentFile>()
-    val recordModel = RecordModel(
-      path = Uri.EMPTY,
-      fullName = "test name",
-      name = "test name",
-      duration = 0,
-      format = "m4a",
-      bitrate = 128_000,
-      sampleRate = 44_100,
-      date = "1970/01/01",
-      size = 0,
-      id = UUID.randomUUID()
-    )
-    coEvery { storageManager.getFileMetaData(any()) } returns recordModel
-
-    val result = storageManager.getFileMetaData(documentFile)
-
-    assertThat(result).isEqualTo(recordModel)
-  }
-
-  @Test
-  fun getFileMetaData_return_null_if_documentFile_is_null() = runTest {
-    val documentFile = mockk<DocumentFile>()
-    coEvery { storageManager.getFileMetaData(any()) } returns null
-
-    val result = storageManager.getFileMetaData(documentFile)
-
-    assertThat(result).isNull()
-  }
-
 }

@@ -11,6 +11,7 @@ import com.shermanrex.recorderApp.data.repository.RecordRepository
 import com.shermanrex.recorderApp.data.service.connection.MediaPlayerServiceConnection
 import com.shermanrex.recorderApp.data.service.connection.MediaRecorderServiceConnection
 import com.shermanrex.recorderApp.data.storage.StorageManager
+import com.shermanrex.recorderApp.data.util.GetMetaData
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -31,8 +32,14 @@ object AppRecordModule {
 
   @Provides
   @Singleton
-  fun provideRecordRepository(@ApplicationContext context: Context, @DispatcherIO coroutineDispatcher: CoroutineDispatcher, storageManager: StorageManager): RecordRepository {
-    return RecordRepository(context = context, storageManager = storageManager, dispatcherIO = coroutineDispatcher)
+  fun provideRecordRepository(@ApplicationContext context: Context, @DispatcherIO coroutineDispatcher: CoroutineDispatcher, getMetaData: GetMetaData): RecordRepository {
+    return RecordRepository(context = context, dispatcherIO = coroutineDispatcher, getMetaData = getMetaData)
+  }
+
+  @Provides
+  @Singleton
+  fun provideGetMetaData(@ApplicationContext context: Context, @DispatcherIO coroutineDispatcher: CoroutineDispatcher): GetMetaData {
+    return GetMetaData(context = context, dispatcherIO = coroutineDispatcher)
   }
 
   @Provides

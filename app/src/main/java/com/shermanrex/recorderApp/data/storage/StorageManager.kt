@@ -74,42 +74,4 @@ class StorageManager @Inject constructor(
     }
   }
 
-  override suspend fun getFileMetaData(
-    document: DocumentFile?,
-  ): RecordModel? {
-    return withContext(dispatcherIO) {
-      runCatching {
-
-        val mediaMeta = MediaMetadataRetriever().also { it.setDataSource(context, document?.uri) }
-
-        mediaMeta.use {
-
-          val duration = mediaMeta.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toInt() ?: 0
-          val date = mediaMeta.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DATE) ?: ""
-          val bitrate = mediaMeta.extractMetadata(MediaMetadataRetriever.METADATA_KEY_BITRATE)?.toInt() ?: 0
-          val sampleRate = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            mediaMeta.extractMetadata(MediaMetadataRetriever.METADATA_KEY_SAMPLERATE)
-              ?.toInt() ?: 0
-          } else 0
-
-          return@withContext if (duration > 500 && document != null) {
-            RecordModel(
-              path = document.uri,
-              fullName = document.name!!,
-              name = document.name!!.removeFileFormat(),
-              format = document.name!!.getFileFormat(),
-              duration = duration,
-              bitrate = bitrate,
-              date = date,
-              size = document.length(),
-              sampleRate = sampleRate,
-            )
-          } else null
-
-        }
-      }.getOrNull()
-    }
-
-  }
-
 }

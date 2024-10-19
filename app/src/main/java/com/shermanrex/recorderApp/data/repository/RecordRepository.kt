@@ -1,10 +1,15 @@
 package com.shermanrex.recorderApp.data.repository
 
 import android.content.Context
+import android.media.MediaMetadataRetriever
 import android.net.Uri
+import android.os.Build
 import androidx.documentfile.provider.DocumentFile
 import com.shermanrex.recorderApp.data.di.annotation.DispatcherIO
 import com.shermanrex.recorderApp.data.storage.StorageManager
+import com.shermanrex.recorderApp.data.util.GetMetaData
+import com.shermanrex.recorderApp.data.util.getFileFormat
+import com.shermanrex.recorderApp.data.util.removeFileFormat
 import com.shermanrex.recorderApp.domain.api.RecordRepositoryImpl
 import com.shermanrex.recorderApp.domain.model.Failure
 import com.shermanrex.recorderApp.domain.model.RecordModel
@@ -22,7 +27,7 @@ import javax.inject.Inject
 
 class RecordRepository @Inject constructor(
   private var context: Context,
-  private var storageManager: StorageManager,
+  private var getMetaData: GetMetaData,
   @DispatcherIO private var dispatcherIO: CoroutineDispatcher,
 ) : RecordRepositoryImpl {
 
@@ -35,9 +40,7 @@ class RecordRepository @Inject constructor(
       val result = documentFile.listFiles().map { document ->
         async {
           if (document.canRead() && document.isFile && document.length() > 0) {
-            storageManager.getFileMetaData(
-              document = document
-            )
+            getMetaData.get(documentFile = document)
           } else null
         }
       }.awaitAll().filterNotNull().sortedByDescending { it.date }
@@ -55,7 +58,7 @@ class RecordRepository @Inject constructor(
   override suspend fun getRecordByUri(targetUri: Uri): Deferred<RecordModel?> {
     return withContext(dispatcherIO) {
       val document = DocumentFile.fromSingleUri(context, targetUri)
-      async { storageManager.getFileMetaData(document) }
+      async { getMetaData.get(documentFile = document) }
     }
   }
 
