@@ -31,9 +31,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.shermanrex.recorderApp.data.util.convertByteToReadableSize
+import com.shermanrex.recorderApp.data.util.convertHzToKhz
 import com.shermanrex.recorderApp.data.util.convertMilliSecondToTime
 import com.shermanrex.recorderApp.data.util.convertToKbps
-import com.shermanrex.recorderApp.data.util.convertHzToKhz
 import com.shermanrex.recorderApp.domain.model.RecordModel
 import com.shermanrex.recorderApp.presentation.ui.theme.AppRecorderTheme
 

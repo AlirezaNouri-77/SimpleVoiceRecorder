@@ -3,7 +3,6 @@ package com.shermanrex.recorderApp.domain.api
 import android.net.Uri
 import android.os.ParcelFileDescriptor
 import androidx.documentfile.provider.DocumentFile
-import com.shermanrex.recorderApp.domain.model.RecordModel
 
 interface StorageManagerImpl {
   suspend fun getFileDescriptorByUri(uri: Uri): ParcelFileDescriptor?

@@ -2,9 +2,9 @@ package com.shermanrex.recorderApp.util
 
 import com.google.common.truth.Truth.assertThat
 import com.shermanrex.recorderApp.data.util.convertByteToReadableSize
+import com.shermanrex.recorderApp.data.util.convertHzToKhz
 import com.shermanrex.recorderApp.data.util.convertMilliSecondToTime
 import com.shermanrex.recorderApp.data.util.convertToKbps
-import com.shermanrex.recorderApp.data.util.convertHzToKhz
 import com.shermanrex.recorderApp.data.util.getFileFormat
 import com.shermanrex.recorderApp.data.util.removeFileFormat
 import org.junit.Test
