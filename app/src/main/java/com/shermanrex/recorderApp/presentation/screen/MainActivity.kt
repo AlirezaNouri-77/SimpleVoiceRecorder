@@ -7,11 +7,6 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -45,29 +40,21 @@ class MainActivity : ComponentActivity(), MySplashScreenImpl by MySplashScreen()
       val state = viewmodel.uiState.collectAsStateWithLifecycle().value
 
       AppRecorderTheme {
-        Box(
-          modifier = Modifier
-            .fillMaxSize()
-            .background(color = MaterialTheme.colorScheme.background),
-        ) {
-          when (state) {
-            PermissionScreenUiState.PERMISSION_GRANT -> RecorderScreen()
-            PermissionScreenUiState.NO_PERMISSION_GRANT -> PermissionScreen(
-              onLocation = { uri ->
-                val takeFlags = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-                this@MainActivity.contentResolver.takePersistableUriPermission(uri, takeFlags)
-                viewmodel.writeDataStoreSavePath(uri.toString())
-              },
-              onMoveToNext = {
-                viewmodel.writeFirstTimeAppLaunch()
-                viewmodel.setUiState(PermissionScreenUiState.PERMISSION_GRANT)
-              },
-            )
-
-            else -> {}
-          }
+        when (state) {
+          PermissionScreenUiState.PERMISSION_GRANT -> RecorderScreen()
+          PermissionScreenUiState.NO_PERMISSION_GRANT -> PermissionScreen(
+            onLocation = { uri ->
+              val takeFlags = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+              this@MainActivity.contentResolver.takePersistableUriPermission(uri, takeFlags)
+              viewmodel.writeDataStoreSavePath(uri.toString())
+            },
+            onMoveToNext = {
+              viewmodel.writeFirstTimeAppLaunch()
+              viewmodel.setUiState(PermissionScreenUiState.PERMISSION_GRANT)
+            },
+          )
+          else -> {}
         }
-
       }
     }
   }
