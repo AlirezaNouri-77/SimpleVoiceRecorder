@@ -15,12 +15,12 @@ import com.shermanrex.recorderApp.data.service.connection.MediaRecorderServiceCo
 import com.shermanrex.recorderApp.data.util.convertTimeStampToDate
 import com.shermanrex.recorderApp.data.util.removeFileFormat
 import com.shermanrex.recorderApp.domain.model.record.AudioFormat
-import com.shermanrex.recorderApp.domain.model.DropDownMenuStateUi
-import com.shermanrex.recorderApp.domain.model.Failure
+import com.shermanrex.recorderApp.domain.model.ui.DropDownMenuStateUi
+import com.shermanrex.recorderApp.domain.model.repository.Failure
 import com.shermanrex.recorderApp.domain.model.record.RecordAudioSetting
 import com.shermanrex.recorderApp.domain.model.record.RecordModel
 import com.shermanrex.recorderApp.domain.model.record.RecorderState
-import com.shermanrex.recorderApp.domain.model.RepositoryResult
+import com.shermanrex.recorderApp.domain.model.repository.RepositoryResult
 import com.shermanrex.recorderApp.domain.model.record.SettingNameFormat
 import com.shermanrex.recorderApp.domain.model.uiState.CurrentMediaPlayerState
 import com.shermanrex.recorderApp.domain.model.uiState.RecorderScreenUiEvent

@@ -4,7 +4,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import com.shermanrex.recorderApp.domain.model.RecordModel
+import com.shermanrex.recorderApp.domain.model.record.RecordModel
 import com.shermanrex.recorderApp.domain.model.uiState.RecorderScreenUiEvent
 
 @Composable

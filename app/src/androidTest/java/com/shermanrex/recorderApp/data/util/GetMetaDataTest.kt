@@ -3,7 +3,7 @@ package com.shermanrex.recorderApp.data.util
 import android.net.Uri
 import androidx.documentfile.provider.DocumentFile
 import com.google.common.truth.Truth.assertThat
-import com.shermanrex.recorderApp.domain.model.RecordModel
+import com.shermanrex.recorderApp.domain.model.record.RecordModel
 import io.mockk.coEvery
 import io.mockk.impl.annotations.MockK
 import io.mockk.mockk

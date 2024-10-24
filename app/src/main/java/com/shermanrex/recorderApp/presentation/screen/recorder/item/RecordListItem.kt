@@ -34,7 +34,7 @@ import com.shermanrex.recorderApp.data.util.convertByteToReadableSize
 import com.shermanrex.recorderApp.data.util.convertHzToKhz
 import com.shermanrex.recorderApp.data.util.convertMilliSecondToTime
 import com.shermanrex.recorderApp.data.util.convertToKbps
-import com.shermanrex.recorderApp.domain.model.RecordModel
+import com.shermanrex.recorderApp.domain.model.record.RecordModel
 import com.shermanrex.recorderApp.presentation.ui.theme.AppRecorderTheme
 
 @OptIn(ExperimentalFoundationApi::class)

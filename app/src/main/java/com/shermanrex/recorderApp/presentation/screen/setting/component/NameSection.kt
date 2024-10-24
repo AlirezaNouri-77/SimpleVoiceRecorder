@@ -15,7 +15,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.shermanrex.recorderApp.data.util.convertTimeStampToDate
-import com.shermanrex.recorderApp.domain.model.SettingNameFormat
+import com.shermanrex.recorderApp.domain.model.record.SettingNameFormat
 
 @Composable
 fun NameSection(

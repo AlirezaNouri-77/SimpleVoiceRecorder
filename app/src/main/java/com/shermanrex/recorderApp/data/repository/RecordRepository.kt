@@ -6,9 +6,9 @@ import androidx.documentfile.provider.DocumentFile
 import com.shermanrex.recorderApp.data.di.annotation.DispatcherIO
 import com.shermanrex.recorderApp.data.util.GetMetaData
 import com.shermanrex.recorderApp.domain.api.RecordRepositoryImpl
-import com.shermanrex.recorderApp.domain.model.Failure
-import com.shermanrex.recorderApp.domain.model.RecordModel
-import com.shermanrex.recorderApp.domain.model.RepositoryResult
+import com.shermanrex.recorderApp.domain.model.repository.Failure
+import com.shermanrex.recorderApp.domain.model.record.RecordModel
+import com.shermanrex.recorderApp.domain.model.repository.RepositoryResult
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi

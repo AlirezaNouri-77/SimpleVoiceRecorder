@@ -5,8 +5,8 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
 import com.shermanrex.recorderApp.data.dataStore.DataStoreManager.Companion.BIT_RATE_KEY
 import com.shermanrex.recorderApp.data.dataStore.DataStoreManager.Companion.SAMPLE_RATE_KEY
-import com.shermanrex.recorderApp.domain.model.AudioFormat
-import com.shermanrex.recorderApp.domain.model.SettingNameFormat
+import com.shermanrex.recorderApp.domain.model.record.AudioFormat
+import com.shermanrex.recorderApp.domain.model.record.SettingNameFormat
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map

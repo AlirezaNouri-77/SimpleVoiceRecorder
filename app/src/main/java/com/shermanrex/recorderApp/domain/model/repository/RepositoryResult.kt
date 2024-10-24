@@ -1,4 +1,4 @@
-package com.shermanrex.recorderApp.domain.model
+package com.shermanrex.recorderApp.domain.model.repository
 
 
 sealed interface RepositoryResult<out T, out E> {

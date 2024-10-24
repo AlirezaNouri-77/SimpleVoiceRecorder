@@ -14,8 +14,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.shermanrex.recorderApp.domain.model.AudioFormat
-import com.shermanrex.recorderApp.domain.model.RecordAudioSetting
+import com.shermanrex.recorderApp.domain.model.record.AudioFormat
+import com.shermanrex.recorderApp.domain.model.record.RecordAudioSetting
 
 @Composable
 fun FormatSection(

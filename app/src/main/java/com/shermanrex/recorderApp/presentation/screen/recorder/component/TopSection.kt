@@ -38,9 +38,9 @@ import com.shermanrex.recorderApp.R
 import com.shermanrex.recorderApp.data.util.convertHzToKhz
 import com.shermanrex.recorderApp.data.util.convertMilliSecondToTime
 import com.shermanrex.recorderApp.data.util.convertToKbps
-import com.shermanrex.recorderApp.domain.model.AudioFormat
-import com.shermanrex.recorderApp.domain.model.RecordAudioSetting
-import com.shermanrex.recorderApp.domain.model.RecorderState
+import com.shermanrex.recorderApp.domain.model.record.AudioFormat
+import com.shermanrex.recorderApp.domain.model.record.RecordAudioSetting
+import com.shermanrex.recorderApp.domain.model.record.RecorderState
 import com.shermanrex.recorderApp.presentation.screen.component.util.bounce
 import com.shermanrex.recorderApp.presentation.ui.theme.AppRecorderTheme
 

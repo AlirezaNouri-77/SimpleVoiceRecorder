@@ -24,7 +24,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.MediaMetadata
-import com.shermanrex.recorderApp.domain.model.RecorderState
+import com.shermanrex.recorderApp.domain.model.record.RecorderState
 import com.shermanrex.recorderApp.domain.model.uiState.CurrentMediaPlayerState
 
 

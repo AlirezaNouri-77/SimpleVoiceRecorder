@@ -30,10 +30,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
 import com.shermanrex.presentation.screen.setting.component.NameSection
-import com.shermanrex.recorderApp.domain.model.AudioFormat
-import com.shermanrex.recorderApp.domain.model.RecordAudioSetting
-import com.shermanrex.recorderApp.domain.model.RecorderState
-import com.shermanrex.recorderApp.domain.model.SettingNameFormat
+import com.shermanrex.recorderApp.domain.model.record.AudioFormat
+import com.shermanrex.recorderApp.domain.model.record.RecordAudioSetting
+import com.shermanrex.recorderApp.domain.model.record.RecorderState
+import com.shermanrex.recorderApp.domain.model.record.SettingNameFormat
 import com.shermanrex.recorderApp.presentation.screen.setting.component.BitRateSection
 import com.shermanrex.recorderApp.presentation.screen.setting.component.FormatSection
 import com.shermanrex.recorderApp.presentation.screen.setting.component.SampleRateSection

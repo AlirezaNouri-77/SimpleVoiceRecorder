@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.shermanrex.presentation.screen.component.util.NoRipple
 import com.shermanrex.recorderApp.R
-import com.shermanrex.recorderApp.domain.model.DropDownMenuStateUi
+import com.shermanrex.recorderApp.domain.model.ui.DropDownMenuStateUi
 
 @Composable
 fun ListDropDownMenu(

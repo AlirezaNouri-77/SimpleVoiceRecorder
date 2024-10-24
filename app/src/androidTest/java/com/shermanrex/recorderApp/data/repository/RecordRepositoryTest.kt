@@ -3,10 +3,10 @@ package com.shermanrex.recorderApp.data.repository
 import android.net.Uri
 import androidx.documentfile.provider.DocumentFile
 import com.google.common.truth.Truth.assertThat
-import com.shermanrex.recorderApp.domain.model.Failure
-import com.shermanrex.recorderApp.domain.model.RecordModel
-import com.shermanrex.recorderApp.domain.model.RepositoryResult
-import com.shermanrex.recorderApp.domain.model.RootFailure
+import com.shermanrex.recorderApp.domain.model.repository.Failure
+import com.shermanrex.recorderApp.domain.model.record.RecordModel
+import com.shermanrex.recorderApp.domain.model.repository.RepositoryResult
+import com.shermanrex.recorderApp.domain.model.repository.RootFailure
 import io.mockk.coEvery
 import io.mockk.impl.annotations.MockK
 import io.mockk.mockk

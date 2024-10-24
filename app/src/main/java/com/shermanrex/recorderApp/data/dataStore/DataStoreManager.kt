@@ -8,9 +8,9 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.shermanrex.recorderApp.data.di.annotation.DispatcherIO
 import com.shermanrex.recorderApp.domain.api.DataStoreManagerImpl
-import com.shermanrex.recorderApp.domain.model.AudioFormat
-import com.shermanrex.recorderApp.domain.model.RecordAudioSetting
-import com.shermanrex.recorderApp.domain.model.SettingNameFormat
+import com.shermanrex.recorderApp.domain.model.record.AudioFormat
+import com.shermanrex.recorderApp.domain.model.record.RecordAudioSetting
+import com.shermanrex.recorderApp.domain.model.record.SettingNameFormat
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOn

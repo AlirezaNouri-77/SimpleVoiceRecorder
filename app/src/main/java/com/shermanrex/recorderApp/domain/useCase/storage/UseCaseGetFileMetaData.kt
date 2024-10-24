@@ -2,7 +2,7 @@ package com.shermanrex.recorderApp.domain.useCase.storage
 
 import androidx.documentfile.provider.DocumentFile
 import com.shermanrex.recorderApp.data.util.GetMetaData
-import com.shermanrex.recorderApp.domain.model.RecordModel
+import com.shermanrex.recorderApp.domain.model.record.RecordModel
 import javax.inject.Inject
 
 class UseCaseGetFileMetaData @Inject constructor(

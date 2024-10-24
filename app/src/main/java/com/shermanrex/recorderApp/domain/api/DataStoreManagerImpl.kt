@@ -1,9 +1,9 @@
 package com.shermanrex.recorderApp.domain.api
 
 import com.shermanrex.recorderApp.data.dataStore.SavePath
-import com.shermanrex.recorderApp.domain.model.AudioFormat
-import com.shermanrex.recorderApp.domain.model.RecordAudioSetting
-import com.shermanrex.recorderApp.domain.model.SettingNameFormat
+import com.shermanrex.recorderApp.domain.model.record.AudioFormat
+import com.shermanrex.recorderApp.domain.model.record.RecordAudioSetting
+import com.shermanrex.recorderApp.domain.model.record.SettingNameFormat
 import kotlinx.coroutines.flow.Flow
 
 interface DataStoreManagerImpl {

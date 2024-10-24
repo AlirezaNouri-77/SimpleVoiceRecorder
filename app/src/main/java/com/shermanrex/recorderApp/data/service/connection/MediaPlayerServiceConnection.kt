@@ -10,12 +10,13 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.shermanrex.recorderApp.data.mapper.toMediaItem
 import com.shermanrex.recorderApp.data.service.MediaPlayerService
-import com.shermanrex.recorderApp.domain.model.RecordModel
+import com.shermanrex.recorderApp.domain.model.record.RecordModel
 import com.shermanrex.recorderApp.domain.model.uiState.CurrentMediaPlayerState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.isActive
 import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 

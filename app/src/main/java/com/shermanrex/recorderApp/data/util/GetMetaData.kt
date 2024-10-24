@@ -6,7 +6,7 @@ import android.os.Build
 import androidx.documentfile.provider.DocumentFile
 import com.shermanrex.recorderApp.data.di.annotation.DispatcherIO
 import com.shermanrex.recorderApp.domain.api.GetMetaDataImpl
-import com.shermanrex.recorderApp.domain.model.RecordModel
+import com.shermanrex.recorderApp.domain.model.record.RecordModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
