@@ -43,8 +43,8 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.shermanrex.recorderApp.domain.model.SettingNameFormat
-import com.shermanrex.recorderApp.domain.model.notification.ServiceActionNotification
+import com.shermanrex.recorderApp.domain.model.record.SettingNameFormat
+import com.shermanrex.recorderApp.domain.model.notification.NotificationActions
 import com.shermanrex.recorderApp.domain.model.uiState.RecorderScreenUiEvent
 import com.shermanrex.recorderApp.domain.model.uiState.RecorderScreenUiState
 import com.shermanrex.recorderApp.presentation.screen.component.util.getLongPressOffset
@@ -129,7 +129,6 @@ fun RecorderScreen(
       viewModel.renameRecord(targetItem = item, newName = name)
     },
     onStartRecord = {
-      viewModel.sendActionToService(ServiceActionNotification.START)
       viewModel.startRecord(it)
     },
     onOpenSetting = {

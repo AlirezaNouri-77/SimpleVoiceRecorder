@@ -14,15 +14,14 @@ import com.shermanrex.recorderApp.data.service.connection.MediaPlayerServiceConn
 import com.shermanrex.recorderApp.data.service.connection.MediaRecorderServiceConnection
 import com.shermanrex.recorderApp.data.util.convertTimeStampToDate
 import com.shermanrex.recorderApp.data.util.removeFileFormat
-import com.shermanrex.recorderApp.domain.model.AudioFormat
+import com.shermanrex.recorderApp.domain.model.record.AudioFormat
 import com.shermanrex.recorderApp.domain.model.DropDownMenuStateUi
 import com.shermanrex.recorderApp.domain.model.Failure
-import com.shermanrex.recorderApp.domain.model.RecordAudioSetting
-import com.shermanrex.recorderApp.domain.model.RecordModel
-import com.shermanrex.recorderApp.domain.model.RecorderState
+import com.shermanrex.recorderApp.domain.model.record.RecordAudioSetting
+import com.shermanrex.recorderApp.domain.model.record.RecordModel
+import com.shermanrex.recorderApp.domain.model.record.RecorderState
 import com.shermanrex.recorderApp.domain.model.RepositoryResult
-import com.shermanrex.recorderApp.domain.model.SettingNameFormat
-import com.shermanrex.recorderApp.domain.model.notification.ServiceActionNotification
+import com.shermanrex.recorderApp.domain.model.record.SettingNameFormat
 import com.shermanrex.recorderApp.domain.model.uiState.CurrentMediaPlayerState
 import com.shermanrex.recorderApp.domain.model.uiState.RecorderScreenUiEvent
 import com.shermanrex.recorderApp.domain.model.uiState.RecorderScreenUiState
@@ -187,7 +186,6 @@ class AppRecorderViewModel @Inject constructor(
       if (document != null) {
         val fileDescriptor = useCaseGetFileDescriptorByUri(document.uri)
         if (fileDescriptor != null) {
-          sendActionToService(ServiceActionNotification.START)
           serviceConnection.mService.startRecord(
             fileDescriptor = fileDescriptor,
             recordAudioSetting = audioRecordSetting,
@@ -201,18 +199,13 @@ class AppRecorderViewModel @Inject constructor(
     }
   }
 
+  fun stopRecord() = serviceConnection.mService.stopRecord()
 
-  fun stopRecord() = viewModelScope.launch {
-    serviceConnection.mService.stopRecord()
-  }
 
   fun writeDataStoreSavePath(savePath: String, shouldUpdateList: Boolean = false) = viewModelScope.launch {
     useCaseWriteSavePath(savePath)
     if (shouldUpdateList) getRecords()
   }
-
-  fun sendActionToService(action: ServiceActionNotification) =
-    serviceConnection.sendIntentToService(action)
 
   fun pauseRecord() {
     if (recorderState == RecorderState.RECORDING) {

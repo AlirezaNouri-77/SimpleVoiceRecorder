@@ -1,4 +1,4 @@
-package com.shermanrex.recorderApp.domain.model
+package com.shermanrex.recorderApp.domain.model.record
 
 data class RecordAudioSetting(
   var format: AudioFormat,

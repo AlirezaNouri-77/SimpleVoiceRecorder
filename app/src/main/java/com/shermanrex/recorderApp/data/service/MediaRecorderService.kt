@@ -12,9 +12,9 @@ import androidx.core.app.ServiceCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
 import com.shermanrex.recorderApp.data.di.annotation.ServiceModuleQualifier
-import com.shermanrex.recorderApp.domain.model.RecordAudioSetting
-import com.shermanrex.recorderApp.domain.model.RecorderState
-import com.shermanrex.recorderApp.domain.model.notification.ServiceActionNotification
+import com.shermanrex.recorderApp.domain.model.record.RecordAudioSetting
+import com.shermanrex.recorderApp.domain.model.record.RecorderState
+import com.shermanrex.recorderApp.domain.model.notification.NotificationActions
 import com.shermanrex.recorderApp.domain.useCase.datastore.UseCaseGetAudioFormat
 import com.shermanrex.recorderApp.domain.useCase.storage.UseCaseAppendFileExtension
 import com.shermanrex.recorderApp.domain.useCase.storage.UseCaseGetDocumentFileFromUri
@@ -102,35 +102,10 @@ class MediaRecorderService : LifecycleService() {
 
   override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
     super.onStartCommand(intent, flags, startId)
-
     when (intent?.action) {
-
-      ServiceActionNotification.STOP.toString() -> stopRecord()
-
-      ServiceActionNotification.PAUSE.toString() -> pauseRecord()
-
-      ServiceActionNotification.START.toString() -> {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-          ServiceCompat.startForeground(
-            this@MediaRecorderService,
-            NOTIFICATION_ID,
-            myNotificationManager.notification.build(),
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-              ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE
-            } else {
-              0
-            }
-          )
-        } else {
-          startForeground(
-            NOTIFICATION_ID,
-            myNotificationManager.notification.build(),
-          )
-        }
-      }
-
-      ServiceActionNotification.RESUME.toString() -> resumeRecord()
-
+      NotificationActions.STOP.name -> stopRecord()
+      NotificationActions.PAUSE.name -> pauseRecord()
+      NotificationActions.RESUME.name -> resumeRecord()
     }
     return START_STICKY
   }
@@ -154,26 +129,25 @@ class MediaRecorderService : LifecycleService() {
       prepare()
       start()
     }
-    setRecordState(RecorderState.RECORDING)
+    _recorderState.value = RecorderState.RECORDING
+    setServiceToForeground()
     currentRecordFileUri = fileSaveUri
     startRecordTimeStamp = System.currentTimeMillis()
     fileDescriptor.close()
-    myNotificationManager.updatePauseAndResumeNotification(
-      recorderState = _recorderState.value,
-    )
+    myNotificationManager.updateNotificationState(notificationActions = NotificationActions.RECORDING)
   }
 
   fun stopRecord() {
     lifecycleScope.launch {
-      if (recorderState.value == RecorderState.STOP || recorderState.value == RecorderState.IDLE) return@launch
+      if (recorderState.value == RecorderState.IDLE) return@launch
       val recordedFileName = useCaseGetDocumentFileFromUri(currentRecordFileUri)?.name ?: "Not Found"
       mediaRecorder.apply {
         stop()
         reset()
       }
-      setRecordState(RecorderState.STOP)
+      _recorderState.value = RecorderState.IDLE
       stopForeground(STOP_FOREGROUND_DETACH)
-      myNotificationManager.setStopRecordNotification(recordedFileName)
+      myNotificationManager.updateNotificationState(notificationActions = NotificationActions.STOP, recordName = recordedFileName)
       _recordTimer.value = 0
       currentTimer = 0
       val format = useCaseGetAudioFormat().first().format.name
@@ -185,25 +159,33 @@ class MediaRecorderService : LifecycleService() {
   fun resumeRecord() {
     mediaRecorder.resume()
     startRecordTimeStamp = System.currentTimeMillis()
-    setRecordState(RecorderState.RECORDING)
-    myNotificationManager.updatePauseAndResumeNotification(
-      recorderState = _recorderState.value,
-    )
+    _recorderState.value = RecorderState.RECORDING
+    myNotificationManager.updateNotificationState(notificationActions = NotificationActions.PAUSE)
   }
 
   fun pauseRecord() {
     if (recorderState.value == RecorderState.RECORDING) {
+      myNotificationManager.updateNotificationState(notificationActions = NotificationActions.RESUME)
       mediaRecorder.pause()
       currentTimer = _recordTimer.value
-      setRecordState(RecorderState.PAUSE)
-      myNotificationManager.updatePauseAndResumeNotification(
-        recorderState = _recorderState.value,
-      )
+      _recorderState.value = RecorderState.PAUSE
     }
   }
 
-  private fun setRecordState(recordState: RecorderState) {
-    _recorderState.update { recordState }
+  private fun setServiceToForeground() {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+      ServiceCompat.startForeground(
+        this@MediaRecorderService,
+        NOTIFICATION_ID,
+        myNotificationManager.notificationBuilder.build(),
+        FOREGROUND_SERVICE_TYPE,
+      )
+    } else {
+      startForeground(
+        NOTIFICATION_ID,
+        myNotificationManager.notificationBuilder.build(),
+      )
+    }
   }
 
   inner class MyServiceBinder : Binder() {
@@ -212,6 +194,11 @@ class MediaRecorderService : LifecycleService() {
 
   companion object {
     const val NOTIFICATION_ID = 1
+    val FOREGROUND_SERVICE_TYPE = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+      ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE
+    } else {
+      0
+    }
   }
 
 }

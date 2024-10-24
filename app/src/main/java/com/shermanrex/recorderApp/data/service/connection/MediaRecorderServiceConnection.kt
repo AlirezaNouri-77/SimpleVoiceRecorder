@@ -7,7 +7,6 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.os.IBinder
 import com.shermanrex.recorderApp.data.service.MediaRecorderService
-import com.shermanrex.recorderApp.domain.model.notification.ServiceActionNotification
 import javax.inject.Inject
 import kotlin.coroutines.suspendCoroutine
 
@@ -39,13 +38,6 @@ class MediaRecorderServiceConnection @Inject constructor(
         mConnection,
         BIND_AUTO_CREATE
       )
-    }
-  }
-
-  fun sendIntentToService(action: ServiceActionNotification) {
-    Intent(context, MediaRecorderService::class.java).apply {
-      this.action = action.toString()
-      context.startService(this)
     }
   }
 

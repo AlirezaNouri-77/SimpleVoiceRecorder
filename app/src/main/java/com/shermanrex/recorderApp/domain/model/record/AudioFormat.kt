@@ -1,4 +1,4 @@
-package com.shermanrex.recorderApp.domain.model
+package com.shermanrex.recorderApp.domain.model.record
 
 import android.media.MediaRecorder
 
