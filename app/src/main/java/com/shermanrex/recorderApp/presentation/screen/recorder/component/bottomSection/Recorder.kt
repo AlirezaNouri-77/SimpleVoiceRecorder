@@ -42,7 +42,7 @@ import androidx.core.content.ContextCompat
 import com.shermanrex.presentation.screen.component.util.NoRipple
 import com.shermanrex.recorderApp.R
 import com.shermanrex.recorderApp.data.Constant
-import com.shermanrex.recorderApp.domain.model.RecorderState
+import com.shermanrex.recorderApp.domain.model.record.RecorderState
 import com.shermanrex.recorderApp.presentation.screen.component.util.bounce
 import com.shermanrex.recorderApp.presentation.screen.component.util.getActivity
 import com.shermanrex.recorderApp.presentation.screen.component.util.openSetting
@@ -62,23 +62,33 @@ fun Recorder(
   var onButtonClick by remember {
     mutableStateOf(false)
   }
-  val animateColorButton = remember {
+  val animateButtonColor = remember {
     Animatable(if (isDarkMode) Color.White else Color.Black)
+  }
+  var recordButtonColor by remember {
+    mutableStateOf(if (isDarkMode) Color.Black else Color.White)
   }
   LaunchedEffect(recorderState()) {
     when (recorderState()) {
-      RecorderState.RECORDING -> animateColorButton.animateTo(Color(0xFFED0909), tween(600))
-      RecorderState.STOP -> animateColorButton.animateTo(if (isDarkMode) Color.White else Color.Black, tween(600))
-      RecorderState.PAUSE -> animateColorButton.animateTo(Color(0xFF1F75FF), tween(600))
-      else -> {}
+      RecorderState.RECORDING -> {
+        recordButtonColor = Color.White
+        animateButtonColor.animateTo(Color(0xFFED0909), tween(300))
+      }
+      RecorderState.IDLE -> {
+        recordButtonColor = if (isDarkMode) Color.Black else Color.White
+        animateButtonColor.animateTo(if (isDarkMode) Color.White else Color.Black, tween(300))
+      }
+      RecorderState.PAUSE -> {
+        recordButtonColor = Color.White
+        animateButtonColor.animateTo(Color(0xFF1F75FF), tween(300))
+      }
     }
   }
   val buttonText = remember(recorderState()) {
     when (recorderState()) {
       RecorderState.RECORDING -> "Recording"
-      RecorderState.STOP -> "Record"
-      RecorderState.PAUSE -> "Resume"
       RecorderState.IDLE -> "Record"
+      RecorderState.PAUSE -> "Resume"
     }
   }
 
@@ -133,7 +143,7 @@ fun Recorder(
         }
       },
       colors = ButtonDefaults.elevatedButtonColors(
-        containerColor = animateColorButton.value,
+        containerColor = animateButtonColor.value,
       ),
       elevation = ButtonDefaults.elevatedButtonElevation(
         defaultElevation = 10.dp,
@@ -143,6 +153,7 @@ fun Recorder(
       Text(
         text = buttonText,
         fontWeight = FontWeight.SemiBold,
+        color = recordButtonColor,
         fontSize = 19.sp,
       )
     }
