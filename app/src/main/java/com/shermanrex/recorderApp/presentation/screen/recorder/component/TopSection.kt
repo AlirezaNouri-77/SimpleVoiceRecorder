@@ -1,5 +1,6 @@
 package com.shermanrex.recorderApp.presentation.screen.recorder.component
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -41,7 +42,7 @@ import com.shermanrex.recorderApp.data.util.convertToKbps
 import com.shermanrex.recorderApp.domain.model.record.AudioFormat
 import com.shermanrex.recorderApp.domain.model.record.RecordAudioSetting
 import com.shermanrex.recorderApp.domain.model.record.RecorderState
-import com.shermanrex.recorderApp.presentation.screen.component.util.bounce
+import com.shermanrex.recorderApp.presentation.util.bounce
 import com.shermanrex.recorderApp.presentation.ui.theme.AppRecorderTheme
 
 @Composable

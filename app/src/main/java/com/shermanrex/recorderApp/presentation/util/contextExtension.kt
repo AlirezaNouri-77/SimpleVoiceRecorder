@@ -1,4 +1,4 @@
-package com.shermanrex.recorderApp.presentation.screen.component.util
+package com.shermanrex.recorderApp.presentation.util
 
 import android.content.Context
 import android.content.ContextWrapper

@@ -43,9 +43,9 @@ import com.shermanrex.presentation.screen.component.util.NoRipple
 import com.shermanrex.recorderApp.R
 import com.shermanrex.recorderApp.data.Constant
 import com.shermanrex.recorderApp.domain.model.record.RecorderState
-import com.shermanrex.recorderApp.presentation.screen.component.util.bounce
-import com.shermanrex.recorderApp.presentation.screen.component.util.getActivity
-import com.shermanrex.recorderApp.presentation.screen.component.util.openSetting
+import com.shermanrex.recorderApp.presentation.util.bounce
+import com.shermanrex.recorderApp.presentation.util.getActivity
+import com.shermanrex.recorderApp.presentation.util.openSetting
 
 @Composable
 fun Recorder(
