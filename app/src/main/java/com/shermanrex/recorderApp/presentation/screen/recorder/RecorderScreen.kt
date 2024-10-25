@@ -20,7 +20,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -43,12 +42,11 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.shermanrex.recorderApp.domain.model.record.SettingNameFormat
-import com.shermanrex.recorderApp.domain.model.notification.NotificationActions
+import com.shermanrex.recorderApp.domain.model.record.RecorderState
 import com.shermanrex.recorderApp.domain.model.uiState.RecorderScreenUiEvent
 import com.shermanrex.recorderApp.domain.model.uiState.RecorderScreenUiState
-import com.shermanrex.recorderApp.presentation.screen.component.util.getLongPressOffset
-import com.shermanrex.recorderApp.presentation.screen.component.util.shareItem
+import com.shermanrex.recorderApp.presentation.util.getLongPressOffset
+import com.shermanrex.recorderApp.presentation.util.shareItem
 import com.shermanrex.recorderApp.presentation.screen.recorder.component.ListDropDownMenu
 import com.shermanrex.recorderApp.presentation.screen.recorder.component.TopSection
 import com.shermanrex.recorderApp.presentation.screen.recorder.component.bottomSection.BottomSection
@@ -56,7 +54,6 @@ import com.shermanrex.recorderApp.presentation.screen.recorder.component.dialog.
 import com.shermanrex.recorderApp.presentation.screen.recorder.item.RecordListItem
 import com.shermanrex.recorderApp.presentation.screen.setting.Setting
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -140,7 +137,13 @@ fun RecorderScreen(
     Setting(
       sheetSate = sheetState,
       recorderState = viewModel.recorderState,
-      onDismiss = { viewModel.showSettingBottomSheet = false },
+      onDismiss = {
+        scope.launch {
+          sheetState.hide()
+        }.invokeOnCompletion {
+          if (!sheetState.isVisible) viewModel.showSettingBottomSheet = false
+        }
+      },
       currentAudioFormat = viewModel.currentAudioFormat,
       onAudioBitRateClick = {
         viewModel.currentAudioFormat = viewModel.currentAudioFormat.copy(bitrate = it)
@@ -162,21 +165,9 @@ fun RecorderScreen(
         viewModel.writeSampleRate(it)
       },
       onNameFormatClick = { viewModel.writeDataStoreNameFormat(it) },
-      getCurrentFileName = { viewModel.getDataStoreNameFormat() },
+      getCurrentFileName = { viewModel.getDataStoreRecordNameFormat() },
       getCurrentSavePath = { viewModel.getDataStoreSavePath().toUri() }
     )
-  }
-
-  LaunchedEffect(viewModel.showSettingBottomSheet) {
-    if (viewModel.showSettingBottomSheet) {
-      scope.launch(Dispatchers.Main) {
-        sheetState.show()
-      }
-    } else {
-      scope.launch(Dispatchers.Main) {
-        sheetState.hide()
-      }
-    }
   }
 
   Scaffold(
@@ -232,6 +223,8 @@ fun RecorderScreen(
               contentPadding = PaddingValues(
                 bottom = bottomSectionSize,
                 top = topSectionSize,
+                start = 10.dp,
+                end = 10.dp,
               ),
             ) {
               itemsIndexed(
@@ -241,12 +234,12 @@ fun RecorderScreen(
                 RecordListItem(
                   modifier = Modifier.animateItem(),
                   itemIndex = index,
-                  currentItemIndex = viewModel.currentIndexClick,
+                  currentItemIndex = viewModel.currentItemIndex,
                   data = item,
                   onItemClick = {
-                    if (viewModel.showSelectMode) return@RecordListItem
+                    if (!viewModel.showSelectMode && viewModel.recorderState != RecorderState.IDLE) return@RecordListItem
                     viewModel.startPlayAudio(item)
-                    viewModel.currentIndexClick = it
+                    viewModel.currentItemIndex = it
                   },
                   onLongItemClick = {
                     if (viewModel.mediaPlayerState.isPlaying) return@RecordListItem
@@ -303,24 +296,15 @@ fun RecorderScreen(
             }
           },
         recorderState = { viewModel.recorderState },
-        onStartRecordClick = {
-          scope.launch {
-            val name = viewModel.getDataStoreNameFormat()
-            if (name != SettingNameFormat.ASK_ON_RECORD) {
-              viewModel.startRecord("")
-            } else {
-              viewModel.setUiEvent(RecorderScreenUiEvent.NAME_PICKER_DIALOG)
-            }
-          }
-        },
+        onStartRecordClick = { viewModel.startRecord() },
         onDeleteClick = {
           viewModel.setUiEvent(RecorderScreenUiEvent.DELETE_DIALOG)
-          viewModel.currentIndexClick = -1
+          viewModel.currentItemIndex = -1
         },
         currentPosition = { viewModel.currentPlayerPosition.toLong() },
         onClosePlayer = {
           viewModel.stopPlayAudio()
-          viewModel.currentIndexClick = -1
+          viewModel.currentItemIndex = -1
         },
         onDismissSelectMode = {
           viewModel.showSelectMode = false

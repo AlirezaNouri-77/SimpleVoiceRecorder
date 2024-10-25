@@ -102,7 +102,7 @@ class AppRecorderViewModel @Inject constructor(
   var showSettingBottomSheet by mutableStateOf(false)
 
   var showSelectMode by mutableStateOf(false)
-  var currentIndexClick by mutableIntStateOf(-1)
+  var currentItemIndex by mutableIntStateOf(-1)
 
   init {
     getRecords()
@@ -112,7 +112,7 @@ class AppRecorderViewModel @Inject constructor(
     observeMediaPlayerCurrentPosition()
   }
 
-  suspend fun getDataStoreNameFormat(): SettingNameFormat = useCaseGetNameFormat().first()
+  suspend fun getDataStoreRecordNameFormat(): SettingNameFormat = useCaseGetNameFormat().first()
 
   suspend fun getDataStoreSavePath(): String = useCaseGetSavePath().first()
 
@@ -173,11 +173,17 @@ class AppRecorderViewModel @Inject constructor(
   }
 
 
-  fun startRecord(customFileName: String) {
+  fun startRecord(customFileName: String = "") {
     viewModelScope.launch {
 
-      val savePath = useCaseGetSavePath().first()
       val nameFormat = useCaseGetNameFormat().first()
+
+      if (nameFormat == SettingNameFormat.ASK_ON_RECORD && customFileName.isEmpty()) {
+        setUiEvent(RecorderScreenUiEvent.NAME_PICKER_DIALOG)
+        return@launch
+      }
+
+      val savePath = useCaseGetSavePath().first()
       val audioRecordSetting = useCaseGetAudioFormat().first()
 
       val fileName = customFileName.ifEmpty { convertTimeStampToDate(nameFormat.pattern) }
