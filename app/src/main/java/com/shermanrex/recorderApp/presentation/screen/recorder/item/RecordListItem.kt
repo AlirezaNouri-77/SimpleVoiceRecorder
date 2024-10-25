@@ -24,6 +24,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -51,10 +52,12 @@ fun RecordListItem(
   onCheckBoxClick: (RecordModel) -> Unit,
 ) {
 
-  val selectedColor = if (currentItemIndex == itemIndex) MaterialTheme.colorScheme.primary.copy(alpha = 0.6f) else Color.Transparent
+  val selectedColorSurface = if (currentItemIndex == itemIndex) MaterialTheme.colorScheme.primary.copy(alpha = 0.6f) else Color.Transparent
 
   Surface(
     modifier = modifier
+      .fillMaxWidth()
+      .clip(RoundedCornerShape(15.dp))
       .combinedClickable(
         onLongClick = {
           onLongItemClick(itemIndex)
@@ -62,11 +65,8 @@ fun RecordListItem(
         onClick = {
           onItemClick(itemIndex)
         }
-      )
-      .fillMaxWidth()
-      .padding(horizontal = 8.dp),
-    shape = RoundedCornerShape(15.dp),
-    color = selectedColor,
+      ),
+    color = selectedColorSurface,
   ) {
 
     Column(

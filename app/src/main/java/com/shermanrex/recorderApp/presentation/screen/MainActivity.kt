@@ -28,11 +28,8 @@ class MainActivity : ComponentActivity(), MySplashScreenImpl by MySplashScreen()
     setSplashScreen(activity = this)
     setAnimationWhenSplashEnd()
     setKeepShow { viewmodel.removeSplashScreen.value }
+    enableEdgeToEdge()
 
-    enableEdgeToEdge(
-      statusBarStyle = SystemBarStyle.light(Color.Transparent.toArgb(), Color.Transparent.toArgb()),
-      navigationBarStyle = SystemBarStyle.light(Color.Transparent.toArgb(), Color.Transparent.toArgb()),
-    )
     super.onCreate(savedInstanceState)
 
     setContent {

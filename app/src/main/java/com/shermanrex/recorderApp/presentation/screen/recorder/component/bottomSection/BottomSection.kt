@@ -27,7 +27,6 @@ import androidx.media3.common.MediaMetadata
 import com.shermanrex.recorderApp.domain.model.record.RecorderState
 import com.shermanrex.recorderApp.domain.model.uiState.CurrentMediaPlayerState
 
-
 @Composable
 fun BottomSection(
   modifier: Modifier = Modifier,
@@ -115,7 +114,7 @@ fun BottomSection(
               .fillMaxWidth()
               .wrapContentSize()
               .navigationBarsPadding()
-              .padding(horizontal = 10.dp),
+              .padding(horizontal = 20.dp),
             colors = CardDefaults.cardColors(
               containerColor = MaterialTheme.colorScheme.primary,
             ),
@@ -127,12 +126,12 @@ fun BottomSection(
             AnimatedContent(isOnSelectMode, label = "") { targetState ->
               when (targetState) {
                 true -> SelectedMode(
-                    selectedItemCount = { selectedItemCount() },
-                    onDismiss = { onDismissSelectMode() },
-                    onSelectAll = { onSelectAll() },
-                    onDeSelectAll = { onDeSelectAll() },
-                    onDeleteClick = { onDeleteSelectModeClick() },
-                  )
+                  selectedItemCount = { selectedItemCount() },
+                  onDismiss = { onDismissSelectMode() },
+                  onSelectAll = { onSelectAll() },
+                  onDeSelectAll = { onDeSelectAll() },
+                  onDeleteClick = { onDeleteSelectModeClick() },
+                )
 
                 false -> Recorder(
                   recorderState = { recorderState() },

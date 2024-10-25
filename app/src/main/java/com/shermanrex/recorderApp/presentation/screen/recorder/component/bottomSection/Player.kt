@@ -232,10 +232,9 @@ fun Player(
         IconButton(
           modifier = Modifier.weight(0.1f, false),
           onClick = {
-            onShareClick(
-              currentPlayerState().mediaMetadata.extras?.getString(Constant.METADATA_URI_KEY)
-                ?.toUri() ?: Uri.EMPTY
-            )
+            val itemUri = currentPlayerState().mediaMetadata.extras?.getString(Constant.METADATA_URI_KEY)
+              ?.toUri() ?: Uri.EMPTY
+            onShareClick(itemUri)
           },
         ) {
           Icon(
