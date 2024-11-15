@@ -68,29 +68,31 @@ fun Recorder(
   var recordButtonColor by remember {
     mutableStateOf(if (isDarkMode) Color.Black else Color.White)
   }
+
+  var recordButtonText by remember {
+    mutableStateOf("Record")
+  }
+
   LaunchedEffect(recorderState()) {
     when (recorderState()) {
       RecorderState.RECORDING -> {
+        recordButtonText = "Recording"
         recordButtonColor = Color.White
         animateButtonColor.animateTo(Color(0xFFED0909), tween(300))
       }
       RecorderState.IDLE -> {
+        recordButtonText = "Record"
         recordButtonColor = if (isDarkMode) Color.Black else Color.White
         animateButtonColor.animateTo(if (isDarkMode) Color.White else Color.Black, tween(300))
       }
       RecorderState.PAUSE -> {
+        recordButtonText = "Resume"
         recordButtonColor = Color.White
         animateButtonColor.animateTo(Color(0xFF1F75FF), tween(300))
       }
     }
   }
-  val buttonText = remember(recorderState()) {
-    when (recorderState()) {
-      RecorderState.RECORDING -> "Recording"
-      RecorderState.IDLE -> "Record"
-      RecorderState.PAUSE -> "Resume"
-    }
-  }
+
 
   if (onButtonClick) {
     CheckMicrophonePermission(
@@ -151,7 +153,7 @@ fun Recorder(
       )
     ) {
       Text(
-        text = buttonText,
+        text = recordButtonText,
         fontWeight = FontWeight.SemiBold,
         color = recordButtonColor,
         fontSize = 19.sp,
