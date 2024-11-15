@@ -50,10 +50,10 @@ class RecordRepository @Inject constructor(
 
   }
 
-  override suspend fun getRecordByUri(targetUri: Uri): Deferred<RecordModel?> {
+  override suspend fun getRecordByUri(targetUri: Uri): RecordModel? {
     return withContext(dispatcherIO) {
       val document = DocumentFile.fromSingleUri(context, targetUri)
-      async { getMetaData.get(documentFile = document) }
+       getMetaData.get(documentFile = document)
     }
   }
 

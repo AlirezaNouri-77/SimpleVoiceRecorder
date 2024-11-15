@@ -1,6 +1,7 @@
 package com.shermanrex.recorderApp.presentation.screen.recorder
 
 import android.net.Uri
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
@@ -51,6 +52,8 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -299,7 +302,11 @@ class AppRecorderViewModel @Inject constructor(
       val isServiceBind = serviceConnection.bindService()
       if (isServiceBind) {
         launch {
-          serviceConnection.mService.amplitudes.collect {
+          serviceConnection.mService.amplitudes.shareIn(
+            viewModelScope,
+            SharingStarted.Eagerly,
+            0,
+          ).collect {
             amplitudesList.add(it)
           }
         }
@@ -315,7 +322,7 @@ class AppRecorderViewModel @Inject constructor(
         }
         launch {
           serviceConnection.mService.lastRecord.collect { uri ->
-            useCaseGetRecordByUri(uri).await()?.let { recordDataList.add(0, it) }
+            useCaseGetRecordByUri(uri)?.let { recordDataList.add(0, it) }
             if (recordDataList.size != 0) screenRecorderScreenUiState.value = RecorderScreenUiState.DATA
             amplitudesList.clear()
           }

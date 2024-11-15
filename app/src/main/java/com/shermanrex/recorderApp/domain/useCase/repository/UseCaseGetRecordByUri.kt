@@ -9,7 +9,7 @@ import javax.inject.Inject
 class UseCaseGetRecordByUri @Inject constructor(
   private var recordRepository: RecordRepository,
 ) {
-  suspend operator fun invoke(uri: Uri): Deferred<RecordModel?> {
+  suspend operator fun invoke(uri: Uri): RecordModel?  {
     return recordRepository.getRecordByUri(uri)
   }
 }

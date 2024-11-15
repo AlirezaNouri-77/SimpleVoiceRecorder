@@ -12,23 +12,22 @@ import androidx.core.app.ServiceCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
 import com.shermanrex.recorderApp.data.di.annotation.ServiceModuleQualifier
+import com.shermanrex.recorderApp.domain.model.notification.NotificationActions
 import com.shermanrex.recorderApp.domain.model.record.RecordAudioSetting
 import com.shermanrex.recorderApp.domain.model.record.RecorderState
-import com.shermanrex.recorderApp.domain.model.notification.NotificationActions
 import com.shermanrex.recorderApp.domain.useCase.datastore.UseCaseGetAudioFormat
 import com.shermanrex.recorderApp.domain.useCase.storage.UseCaseAppendFileExtension
 import com.shermanrex.recorderApp.domain.useCase.storage.UseCaseGetDocumentFileFromUri
 import com.shermanrex.recorderApp.presentation.notification.MyNotificationManager
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -70,8 +69,14 @@ class MediaRecorderService : LifecycleService() {
   private var _recordTimer = MutableStateFlow(0)
   var recordTimer = _recordTimer.asStateFlow()
 
-  private var _amplitudes = MutableSharedFlow<Float>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
-  val amplitudes = _amplitudes.asSharedFlow()
+  var amplitudes = flow {
+    while (currentCoroutineContext().isActive) {
+      delay(100)
+      if (_recorderState.value == RecorderState.RECORDING) {
+        emit(mediaRecorder.maxAmplitude.toFloat())
+      }
+    }
+  }
 
   override fun onBind(intent: Intent): IBinder {
     super.onBind(intent)
@@ -80,14 +85,12 @@ class MediaRecorderService : LifecycleService() {
 
   override fun onCreate() {
     super.onCreate()
-    mediaRecorder.maxAmplitude
-    lifecycleScope.launch(Dispatchers.IO) {
+    lifecycleScope.launch {
       while (this.isActive) {
         delay(100)
         if (_recorderState.value == RecorderState.RECORDING) {
           val timeRecord = (System.currentTimeMillis() - startRecordTimeStamp).toInt() + currentTimer
           _recordTimer.value = timeRecord
-          _amplitudes.emit(mediaRecorder.maxAmplitude.toFloat())
         }
       }
     }
@@ -126,6 +129,7 @@ class MediaRecorderService : LifecycleService() {
       setAudioEncodingBitRate(recordAudioSetting.bitrate)
       setAudioSamplingRate(recordAudioSetting.sampleRate)
       setOutputFile(fileDescriptor.fileDescriptor)
+      this.maxAmplitude
       prepare()
       start()
     }

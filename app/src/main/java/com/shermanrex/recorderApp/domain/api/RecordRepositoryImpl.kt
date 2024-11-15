@@ -10,5 +10,5 @@ import kotlinx.coroutines.flow.Flow
 
 interface RecordRepositoryImpl {
   suspend fun getRecords(documentFile: DocumentFile): Flow<RepositoryResult<RecordModel, Failure>>
-  suspend fun getRecordByUri(targetUri: Uri): Deferred<RecordModel?>
+  suspend fun getRecordByUri(targetUri: Uri): RecordModel?
 }
