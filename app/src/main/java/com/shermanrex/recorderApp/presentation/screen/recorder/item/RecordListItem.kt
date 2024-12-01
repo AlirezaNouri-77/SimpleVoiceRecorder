@@ -1,20 +1,18 @@
 package com.shermanrex.recorderApp.presentation.screen.recorder.item
 
-import android.net.Uri
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
@@ -36,6 +34,7 @@ import com.shermanrex.recorderApp.data.util.convertHzToKhz
 import com.shermanrex.recorderApp.data.util.convertMilliSecondToTime
 import com.shermanrex.recorderApp.data.util.convertToKbps
 import com.shermanrex.recorderApp.domain.model.record.RecordModel
+import com.shermanrex.recorderApp.presentation.screen.recorder.component.WaveForm
 import com.shermanrex.recorderApp.presentation.ui.theme.AppRecorderTheme
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -45,6 +44,7 @@ fun RecordListItem(
   data: RecordModel,
   itemIndex: Int,
   currentItemIndex: Int,
+  isPlaying: Boolean,
   onSelectMode: Boolean,
   isItemSelected: Boolean,
   onItemClick: (Int) -> Unit,
@@ -77,9 +77,20 @@ fun RecordListItem(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center,
       ) {
+        AnimatedVisibility(
+          visible = currentItemIndex == itemIndex,
+          enter = fadeIn(),
+          exit = fadeOut(),
+        ) {
+          WaveForm(
+            enable = isPlaying,
+            waveColor = MaterialTheme.colorScheme.onPrimary,
+          )
+        }
+        Spacer(Modifier.width(8.dp))
         Column(
           modifier = Modifier.weight(0.8f),
-          verticalArrangement = Arrangement.spacedBy(2.dp)
+          verticalArrangement = Arrangement.spacedBy(1.dp)
         ) {
           Text(
             text = data.name,
@@ -104,10 +115,9 @@ fun RecordListItem(
           color = MaterialTheme.colorScheme.onPrimary,
         )
         AnimatedVisibility(
-          modifier = Modifier.weight(0.15f),
           visible = onSelectMode,
-          enter = fadeIn() + slideInHorizontally(tween(300)) { it / 3 },
-          exit = slideOutHorizontally { it } + fadeOut(),
+          enter = fadeIn(),
+          exit = fadeOut(),
         ) {
           Checkbox(
             checked = isItemSelected,
@@ -131,26 +141,55 @@ fun RecordListItem(
 @Composable
 private fun Preview() {
   AppRecorderTheme {
-    RecordListItem(
-      modifier = Modifier.background(MaterialTheme.colorScheme.background),
-      data = RecordModel(
-        path = Uri.EMPTY,
-        fullName = "Hans Richards",
-        name = "Leola Gaines",
-        duration = 3607,
-        format = "m4a",
-        bitrate = 1508,
-        sampleRate = 2737,
-        size = 3768,
-        date = "",
-      ),
-      itemIndex = 1,
-      currentItemIndex = 1,
-      onItemClick = {},
-      onLongItemClick = {},
-      onCheckBoxClick = {},
-      onSelectMode = true,
-      isItemSelected = false,
-    )
+    Column {
+      RecordListItem(
+        modifier = Modifier.background(MaterialTheme.colorScheme.background),
+        data = RecordModel.Dummy,
+        itemIndex = 0,
+        currentItemIndex = 1,
+        onItemClick = {},
+        onLongItemClick = {},
+        onCheckBoxClick = {},
+        onSelectMode = true,
+        isItemSelected = false,
+        isPlaying = false,
+      )
+      RecordListItem(
+        modifier = Modifier.background(MaterialTheme.colorScheme.background),
+        data = RecordModel.Dummy,
+        itemIndex = 0,
+        currentItemIndex = 1,
+        onItemClick = {},
+        onLongItemClick = {},
+        onCheckBoxClick = {},
+        onSelectMode = true,
+        isItemSelected = true,
+        isPlaying = false,
+      )
+      RecordListItem(
+        modifier = Modifier.background(MaterialTheme.colorScheme.background),
+        data = RecordModel.Dummy,
+        itemIndex = 1,
+        currentItemIndex = 1,
+        onItemClick = {},
+        onLongItemClick = {},
+        onCheckBoxClick = {},
+        onSelectMode = false,
+        isItemSelected = false,
+        isPlaying = true,
+      )
+      RecordListItem(
+        modifier = Modifier.background(MaterialTheme.colorScheme.background),
+        data = RecordModel.Dummy,
+        itemIndex = 0,
+        currentItemIndex = 1,
+        onItemClick = {},
+        onLongItemClick = {},
+        onCheckBoxClick = {},
+        onSelectMode = false,
+        isItemSelected = false,
+        isPlaying = false,
+      )
+    }
   }
 }
