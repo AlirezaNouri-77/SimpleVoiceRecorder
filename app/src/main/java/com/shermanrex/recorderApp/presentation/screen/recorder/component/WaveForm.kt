@@ -6,7 +6,6 @@ import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -15,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.inset
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Density
@@ -29,17 +29,18 @@ fun WaveForm(
   modifier: Modifier = Modifier,
   enable: Boolean = true,
   line: Int = 3,
-  waveColor: Color = Color.White,
+  lineColor: Color = Color.White,
   density: Density = LocalDensity.current,
 ) {
 
   val lineSpace = 5f
   val lineWidth = 10f
 
-  val width = with(density) {
+  val widthDp = with(density) {
     ((lineSpace + lineWidth) * line).toDp()
   }
-  val heightDp = width + 8.dp
+  val heightDp = widthDp + 10.dp
+
   val heightPx = with(density) {
     heightDp.toPx()
   }
@@ -77,25 +78,21 @@ fun WaveForm(
           animatable[index].stop()
           animatable[index].animateTo(
             targetValue = 0f,
+            animationSpec = tween(130,60)
           )
         }
       }
     }
   }
 
-
-  Box(
+  Canvas(
     modifier = modifier
-      .size(width = width, height = heightDp),
+      .size(width = widthDp, height = heightDp)
   ) {
-
-    Canvas(
-      modifier = Modifier
-        .size(width = width, height = heightDp)
-    ) {
-      for (index in 0 until lineCount) {
+    for (index in 0 until lineCount) {
+      inset(horizontal = 2f){
         drawLine(
-          color = waveColor,
+          color = lineColor,
           start = Offset(x = (index * (lineSpace + lineWidth)) + lineSpace, y = halfHeight + animatable[index].value),
           end = Offset(x = (index * (lineSpace + lineWidth)) + lineSpace, y = halfHeight - animatable[index].value),
           strokeWidth = lineWidth,
@@ -103,10 +100,10 @@ fun WaveForm(
         )
       }
     }
-
   }
 
 }
+
 
 @Preview(showBackground = true)
 @Composable

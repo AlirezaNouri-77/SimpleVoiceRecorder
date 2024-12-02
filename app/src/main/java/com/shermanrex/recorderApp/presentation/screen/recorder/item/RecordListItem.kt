@@ -52,8 +52,6 @@ fun RecordListItem(
   onCheckBoxClick: (RecordModel) -> Unit,
 ) {
 
-  val selectedColorSurface = if (currentItemIndex == itemIndex) MaterialTheme.colorScheme.primary.copy(alpha = 0.6f) else Color.Transparent
-
   Surface(
     modifier = modifier
       .fillMaxWidth()
@@ -66,73 +64,70 @@ fun RecordListItem(
           onItemClick(itemIndex)
         }
       ),
-    color = selectedColorSurface,
+    color = if (currentItemIndex == itemIndex) MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.15f) else Color.Transparent,
   ) {
 
-    Column(
-      modifier = Modifier.padding(10.dp)
+    Row(
+      modifier = Modifier.padding(8.dp),
+      verticalAlignment = Alignment.CenterVertically,
+      horizontalArrangement = Arrangement.Center,
     ) {
-      Row(
-        modifier = Modifier,
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center,
+      AnimatedVisibility(
+        visible = currentItemIndex == itemIndex,
+        enter = fadeIn(),
+        exit = fadeOut(),
       ) {
-        AnimatedVisibility(
-          visible = currentItemIndex == itemIndex,
-          enter = fadeIn(),
-          exit = fadeOut(),
-        ) {
-          WaveForm(
-            enable = isPlaying,
-            waveColor = MaterialTheme.colorScheme.onPrimary,
-          )
-        }
-        Spacer(Modifier.width(8.dp))
-        Column(
-          modifier = Modifier.weight(0.8f),
-          verticalArrangement = Arrangement.spacedBy(1.dp)
-        ) {
-          Text(
-            text = data.name,
-            fontSize = 15.sp,
-            fontWeight = FontWeight.Medium,
-            color = MaterialTheme.colorScheme.onPrimary,
-            maxLines = 2,
-          )
-          Text(
-            text = "${data.bitrate.convertToKbps()}, ${data.size.convertByteToReadableSize()}, ${data.sampleRate.convertHzToKhz()}, ${data.format}",
-            fontSize = 11.sp,
-            fontWeight = FontWeight.Light,
-            color = MaterialTheme.colorScheme.onPrimary,
-          )
-        }
+        WaveForm(
+          enable = isPlaying,
+          lineColor = MaterialTheme.colorScheme.onPrimary,
+        )
+      }
+      Spacer(Modifier.width(8.dp))
+      Column(
+        modifier = Modifier.weight(0.8f),
+        verticalArrangement = Arrangement.spacedBy(1.dp)
+      ) {
         Text(
-          modifier = Modifier.weight(0.2f),
-          text = data.duration.convertMilliSecondToTime(false),
-          fontSize = 13.sp,
+          text = data.name,
+          fontSize = 15.sp,
           fontWeight = FontWeight.Medium,
-          textAlign = TextAlign.Center,
+          color = MaterialTheme.colorScheme.onPrimary,
+          maxLines = 2,
+        )
+        Text(
+          text = "${data.bitrate.convertToKbps()}, ${data.size.convertByteToReadableSize()}, ${data.sampleRate.convertHzToKhz()}, ${data.format}",
+          fontSize = 11.sp,
+          fontWeight = FontWeight.Light,
           color = MaterialTheme.colorScheme.onPrimary,
         )
-        AnimatedVisibility(
-          visible = onSelectMode,
-          enter = fadeIn(),
-          exit = fadeOut(),
-        ) {
-          Checkbox(
-            checked = isItemSelected,
-            onCheckedChange = {
-              onCheckBoxClick(data)
-            },
-            colors = CheckboxDefaults.colors(
-              checkedColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.1f),
-              checkmarkColor = MaterialTheme.colorScheme.onPrimary,
-              uncheckedColor = MaterialTheme.colorScheme.onPrimary,
-            ),
-          )
-        }
+      }
+      Text(
+        modifier = Modifier.weight(0.2f),
+        text = data.duration.convertMilliSecondToTime(false),
+        fontSize = 13.sp,
+        fontWeight = FontWeight.Medium,
+        textAlign = TextAlign.Center,
+        color = MaterialTheme.colorScheme.onPrimary,
+      )
+      AnimatedVisibility(
+        visible = onSelectMode,
+        enter = fadeIn(),
+        exit = fadeOut(),
+      ) {
+        Checkbox(
+          checked = isItemSelected,
+          onCheckedChange = {
+            onCheckBoxClick(data)
+          },
+          colors = CheckboxDefaults.colors(
+            checkedColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.1f),
+            checkmarkColor = MaterialTheme.colorScheme.onPrimary,
+            uncheckedColor = MaterialTheme.colorScheme.onPrimary,
+          ),
+        )
       }
     }
+
   }
 }
 
