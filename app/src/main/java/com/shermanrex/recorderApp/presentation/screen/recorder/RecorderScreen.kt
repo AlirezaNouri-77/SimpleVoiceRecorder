@@ -49,6 +49,7 @@ import com.shermanrex.recorderApp.presentation.util.getLongPressOffset
 import com.shermanrex.recorderApp.presentation.util.shareItem
 import com.shermanrex.recorderApp.presentation.screen.recorder.component.ListDropDownMenu
 import com.shermanrex.recorderApp.presentation.screen.recorder.component.TopSection
+import com.shermanrex.recorderApp.presentation.screen.recorder.component.topsection.TopSection
 import com.shermanrex.recorderApp.presentation.screen.recorder.component.bottomSection.BottomSection
 import com.shermanrex.recorderApp.presentation.screen.recorder.component.dialog.DialogHandler
 import com.shermanrex.recorderApp.presentation.screen.recorder.item.RecordListItem
