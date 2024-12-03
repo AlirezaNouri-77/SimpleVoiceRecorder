@@ -22,10 +22,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.MediaMetadata
 import com.shermanrex.recorderApp.domain.model.record.RecorderState
 import com.shermanrex.recorderApp.domain.model.uiState.CurrentMediaPlayerState
+import com.shermanrex.recorderApp.presentation.screen.recorder.component.player.Player
+import com.shermanrex.recorderApp.presentation.ui.theme.AppRecorderTheme
 
 @Composable
 fun BottomSection(
@@ -73,20 +76,20 @@ fun BottomSection(
     AnimatedContent(
       targetState = currentPlayerState().mediaMetadata != MediaMetadata.EMPTY,
       transitionSpec = {
-        fadeIn(tween(50))
+        fadeIn(tween(60))
           .plus(
             slideIntoContainer(
               towards = AnimatedContentTransitionScope.SlideDirection.Up,
-              animationSpec = tween(100, 50)
+              animationSpec = tween(100)
             )
           )
           .togetherWith(
             slideOutOfContainer(
               towards = AnimatedContentTransitionScope.SlideDirection.Down,
-              animationSpec = tween(100, 50)
+              animationSpec = tween(100)
             )
               .plus(
-                fadeOut(tween(50))
+                fadeOut(tween(50,20))
               )
           )
       },

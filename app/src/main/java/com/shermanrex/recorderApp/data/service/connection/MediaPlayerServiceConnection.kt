@@ -94,8 +94,8 @@ class MediaPlayerServiceConnection @Inject constructor(var context: Context) {
 
       override fun onPlaybackStateChanged(playbackState: Int) {
         when (playbackState) {
-          Player.STATE_IDLE or Player.STATE_ENDED -> _mediaPlayerState.update { it.copy(isPlaying = false) }
-          Player.STATE_BUFFERING -> _mediaPlayerState.update { it.copy(isPlaying = true) }
+          Player.STATE_READY -> _mediaPlayerState.update { it.copy(isBuffering = false) }
+          Player.STATE_BUFFERING -> _mediaPlayerState.update { it.copy(isBuffering = true) }
           else -> {}
         }
       }
