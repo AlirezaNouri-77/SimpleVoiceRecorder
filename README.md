@@ -11,10 +11,15 @@
 - data store
 
 ### Screenshot
-<img src="https://github.com/AlirezaNouri-77/SimpleAppRecorder/assets/71293106/8cc7feb9-041b-47f6-820d-7d9ca20f6928" width="200" height="400"> <img src="https://github.com/AlirezaNouri-77/SimpleAppRecorder/assets/71293106/cb3854ea-3f7f-4815-a1b9-24698e11b203" width="200" height="400"> <img src="https://github.com/AlirezaNouri-77/SimpleAppRecorder/assets/71293106/16e53cc5-f811-45fe-ad86-45212a733f0a" width="200" height="400"> <img src="https://github.com/AlirezaNouri-77/SimpleAppRecorder/assets/71293106/9d92a524-050b-4ec8-b1c9-ecca59d7a4da" width="200" height="400">
+<img src="https://github.com/user-attachments/assets/6d912b2a-e22a-4996-bc3c-32355bebcd27" width="200" height="400">
+<img src="https://github.com/user-attachments/assets/8a2b1416-189d-4b1e-ae8e-625e779c5625" width="200" height="400">
+<img src="https://github.com/user-attachments/assets/3b50d60d-9b8b-454c-a292-8bb06467d2cb" width="200" height="400">
+<img src="https://github.com/user-attachments/assets/eb08dae9-0488-4eeb-b1f3-0b577d7e8fd4" width="200" height="400">
+
+
+
 
 ### Demo
-recorded in android studio emulator
+size ~7mb
 
-https://github.com/user-attachments/assets/927715f0-2c37-4a97-b48b-e8689a014920
-
+https://github.com/user-attachments/assets/60cf0529-a648-4c40-8a3f-1678e2120e05
