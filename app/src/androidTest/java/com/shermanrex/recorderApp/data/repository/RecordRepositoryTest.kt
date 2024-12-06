@@ -78,8 +78,8 @@ class RecordRepositoryTest {
 
     val record = mockk<RecordModel>()
 
-    coEvery { recordRepository.getRecordByUri(any()).await() } returns record
-    val test = recordRepository.getRecordByUri(Uri.EMPTY).await()
+    coEvery { recordRepository.getRecordByUri(any()) } returns record
+    val test = recordRepository.getRecordByUri(Uri.EMPTY)
 
     assertThat(test).isEqualTo(record)
   }
@@ -87,8 +87,8 @@ class RecordRepositoryTest {
   @Test
   fun getRecord_by_single_uri_return_null_if_uri_not_valid() = runTest {
 
-    coEvery { recordRepository.getRecordByUri(any()).await() } returns null
-    val test = recordRepository.getRecordByUri(Uri.EMPTY).await()
+    coEvery { recordRepository.getRecordByUri(any()) } returns null
+    val test = recordRepository.getRecordByUri(Uri.EMPTY)
 
     assertThat(test).isNull()
   }
@@ -96,12 +96,12 @@ class RecordRepositoryTest {
   @Test
   fun getRecord_by_single_uri_return_deferred() = runTest {
 
-    val deferred = CompletableDeferred<RecordModel>()
+    val except = mockk<RecordModel>()
 
-    coEvery { recordRepository.getRecordByUri(any()) } returns deferred
+    coEvery { recordRepository.getRecordByUri(any()) } returns except
     val test = recordRepository.getRecordByUri(Uri.EMPTY)
 
-    assertThat(test).isEqualTo(deferred)
+    assertThat(test).isEqualTo(except)
   }
 
 }
