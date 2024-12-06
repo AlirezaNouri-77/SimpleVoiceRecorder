@@ -24,10 +24,14 @@ import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -66,10 +70,8 @@ class MediaRecorderService : LifecycleService() {
   private var _recorderState = MutableStateFlow(RecorderState.IDLE)
   val recorderState = _recorderState.asStateFlow()
 
-  private var _recordTimer = MutableStateFlow(0)
-  var recordTimer = _recordTimer.asStateFlow()
-
   var amplitudes = flow {
+    mediaRecorder.maxAmplitude
     while (currentCoroutineContext().isActive) {
       delay(100)
       if (_recorderState.value == RecorderState.RECORDING) {
@@ -78,39 +80,27 @@ class MediaRecorderService : LifecycleService() {
     }
   }
 
-  override fun onBind(intent: Intent): IBinder {
-    super.onBind(intent)
-    return binder
-  }
+  private var _recorderTime = MutableStateFlow(0)
+  var recorderTimer = _recorderTime
+    .onStart {
+      recordTimerFlow()
+    }
+    .stateIn(
+      lifecycleScope,
+      SharingStarted.Eagerly,
+      0,
+    )
 
-  override fun onCreate() {
-    super.onCreate()
+  private fun recordTimerFlow() {
     lifecycleScope.launch {
-      while (this.isActive) {
+      while (currentCoroutineContext().isActive) {
         delay(100)
         if (_recorderState.value == RecorderState.RECORDING) {
-          val timeRecord = (System.currentTimeMillis() - startRecordTimeStamp).toInt() + currentTimer
-          _recordTimer.value = timeRecord
+          val timeRecord = (System.currentTimeMillis() - startRecordTimeStamp) + currentTimer
+          _recorderTime.update { timeRecord.toInt() }
         }
       }
     }
-  }
-
-  override fun onTaskRemoved(rootIntent: Intent?) {
-    if (_recorderState.value != RecorderState.RECORDING) {
-      stopForeground(STOP_FOREGROUND_REMOVE)
-      stopSelf()
-    }
-  }
-
-  override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-    super.onStartCommand(intent, flags, startId)
-    when (intent?.action) {
-      NotificationActions.STOP.name -> stopRecord()
-      NotificationActions.PAUSE.name -> pauseRecord()
-      NotificationActions.RESUME.name -> resumeRecord()
-    }
-    return START_STICKY
   }
 
   fun startRecord(
@@ -152,7 +142,7 @@ class MediaRecorderService : LifecycleService() {
       _recorderState.value = RecorderState.IDLE
       stopForeground(STOP_FOREGROUND_DETACH)
       myNotificationManager.updateNotificationState(notificationActions = NotificationActions.STOP, recordName = recordedFileName)
-      _recordTimer.value = 0
+      _recorderTime.value = 0
       currentTimer = 0
       val format = useCaseGetAudioFormat().first().format.name
       val newUri = useCaseFileAppendFileExtension(currentRecordFileUri, format)
@@ -171,7 +161,7 @@ class MediaRecorderService : LifecycleService() {
     if (recorderState.value == RecorderState.RECORDING) {
       myNotificationManager.updateNotificationState(notificationActions = NotificationActions.RESUME)
       mediaRecorder.pause()
-      currentTimer = _recordTimer.value
+      currentTimer = _recorderTime.value
       _recorderState.value = RecorderState.PAUSE
     }
   }
@@ -190,6 +180,29 @@ class MediaRecorderService : LifecycleService() {
         myNotificationManager.notificationBuilder.build(),
       )
     }
+  }
+
+  override fun onBind(intent: Intent): IBinder {
+    super.onBind(intent)
+    return binder
+  }
+
+
+  override fun onTaskRemoved(rootIntent: Intent?) {
+    if (_recorderState.value != RecorderState.RECORDING) {
+      stopForeground(STOP_FOREGROUND_REMOVE)
+      stopSelf()
+    }
+  }
+
+  override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+    super.onStartCommand(intent, flags, startId)
+    when (intent?.action) {
+      NotificationActions.STOP.name -> stopRecord()
+      NotificationActions.PAUSE.name -> pauseRecord()
+      NotificationActions.RESUME.name -> resumeRecord()
+    }
+    return START_STICKY
   }
 
   inner class MyServiceBinder : Binder() {

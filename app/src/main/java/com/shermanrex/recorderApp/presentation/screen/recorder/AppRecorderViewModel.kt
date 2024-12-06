@@ -3,7 +3,6 @@ package com.shermanrex.recorderApp.presentation.screen.recorder
 import android.net.Uri
 import android.util.Log
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -16,13 +15,13 @@ import com.shermanrex.recorderApp.data.service.connection.MediaRecorderServiceCo
 import com.shermanrex.recorderApp.data.util.convertTimeStampToDate
 import com.shermanrex.recorderApp.data.util.removeFileFormat
 import com.shermanrex.recorderApp.domain.model.record.AudioFormat
-import com.shermanrex.recorderApp.domain.model.ui.DropDownMenuStateUi
-import com.shermanrex.recorderApp.domain.model.repository.Failure
 import com.shermanrex.recorderApp.domain.model.record.RecordAudioSetting
 import com.shermanrex.recorderApp.domain.model.record.RecordModel
 import com.shermanrex.recorderApp.domain.model.record.RecorderState
-import com.shermanrex.recorderApp.domain.model.repository.RepositoryResult
 import com.shermanrex.recorderApp.domain.model.record.SettingNameFormat
+import com.shermanrex.recorderApp.domain.model.repository.Failure
+import com.shermanrex.recorderApp.domain.model.repository.RepositoryResult
+import com.shermanrex.recorderApp.domain.model.ui.DropDownMenuStateUi
 import com.shermanrex.recorderApp.domain.model.uiState.CurrentMediaPlayerState
 import com.shermanrex.recorderApp.domain.model.uiState.RecorderScreenUiEvent
 import com.shermanrex.recorderApp.domain.model.uiState.RecorderScreenUiState
@@ -52,6 +51,8 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
@@ -86,20 +87,10 @@ class AppRecorderViewModel @Inject constructor(
 
   var recordDataList = mutableStateListOf<RecordModel>()
   var amplitudesList = mutableStateListOf<Float>()
+
   var selectedItemList = mutableStateListOf<RecordModel>()
 
   var currentAudioFormat by mutableStateOf(RecordAudioSetting.Empty)
-
-  private var _uiEvent = MutableSharedFlow<RecorderScreenUiEvent>()
-  var uiEvent = _uiEvent.asSharedFlow()
-
-  private var _recordTime = MutableStateFlow(0)
-  var recordTime = _recordTime.asStateFlow()
-
-  var recorderState by mutableStateOf(RecorderState.IDLE)
-
-  var mediaPlayerState by mutableStateOf(CurrentMediaPlayerState.Empty)
-  var currentPlayerPosition by mutableFloatStateOf(0f)
 
   var dropDownMenuState by mutableStateOf(DropDownMenuStateUi.Empty)
   var showSettingBottomSheet by mutableStateOf(false)
@@ -107,12 +98,37 @@ class AppRecorderViewModel @Inject constructor(
   var showSelectMode by mutableStateOf(false)
   var currentItemIndex by mutableIntStateOf(-1)
 
+  private var _uiEvent = MutableSharedFlow<RecorderScreenUiEvent>()
+  var uiEvent = _uiEvent.asSharedFlow()
+
+  private var _recordTime = MutableStateFlow(0)
+  var recordTime = _recordTime.asStateFlow()
+
+  private var _recordState = MutableStateFlow(RecorderState.IDLE)
+  var recorderState = _recordState.asStateFlow()
+
+  private var _mediaPlayerPosition = MutableStateFlow(0L)
+  var mediaPlayerPosition = _mediaPlayerPosition
+    .onStart {
+      observePlayerPosition()
+    }
+    .stateIn(
+      viewModelScope,
+      SharingStarted.Eagerly,
+      0
+    )
+
+  var mediaPlayerState = mediaPlayerServiceConnection.mediaPlayerState
+    .stateIn(
+      viewModelScope,
+      SharingStarted.WhileSubscribed(5_000L),
+      CurrentMediaPlayerState.Empty
+    )
+
   init {
     getRecords()
     initialAudioSetting()
-    observeMediaPlayerStateListener()
     observeMediaRecorderService()
-    observeMediaPlayerCurrentPosition()
   }
 
   suspend fun getDataStoreRecordNameFormat(): SettingNameFormat = useCaseGetNameFormat().first()
@@ -141,16 +157,16 @@ class AppRecorderViewModel @Inject constructor(
 
   fun deleteRecord(recordModel: RecordModel) {
     viewModelScope.launch {
-      if (mediaPlayerState.isPlaying) stopPlayAudio()
+      if (mediaPlayerState.value.isPlaying) stopPlayAudio()
       if (useCaseDeleteRecord(recordModel.path)) {
         recordDataList.remove(recordModel)
       }
-      if (recordDataList.size == 0) screenRecorderScreenUiState.value = RecorderScreenUiState.EMPTY
+      if (recordDataList.isEmpty()) screenRecorderScreenUiState.value = RecorderScreenUiState.EMPTY
     }
   }
 
   fun deleteRecord() {
-    if (selectedItemList.size == 0) return
+    if (selectedItemList.isEmpty()) return
     viewModelScope.launch {
       selectedItemList.forEach {
         deleteRecord(it)
@@ -217,7 +233,7 @@ class AppRecorderViewModel @Inject constructor(
   }
 
   fun pauseRecord() {
-    if (recorderState == RecorderState.RECORDING) {
+    if (_recordState.value == RecorderState.RECORDING) {
       serviceConnection.mService.pauseRecord()
     }
   }
@@ -247,12 +263,16 @@ class AppRecorderViewModel @Inject constructor(
   }
 
   fun resumeAudio() = mediaPlayerServiceConnection.resumeAudio()
+
   fun pauseAudio() = mediaPlayerServiceConnection.pauseAudio()
+
   fun fastForwardAudio() = mediaPlayerServiceConnection.fastForwardAudio()
+
   fun fastBackForwardAudio() = mediaPlayerServiceConnection.backForwardAudio()
+
   fun seekToPosition(position: Float) {
     mediaPlayerServiceConnection.seekToPosition(position = position)
-    currentPlayerPosition = position
+    _mediaPlayerPosition.update { position.toLong() }
   }
 
   private fun getRecords() = viewModelScope.launch {
@@ -265,7 +285,6 @@ class AppRecorderViewModel @Inject constructor(
     }
 
     useCaseGetRecords(documentFile)
-      .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), RepositoryResult.Loading)
       .collect { result ->
         when (result) {
           is RepositoryResult.Success -> {
@@ -283,18 +302,20 @@ class AppRecorderViewModel @Inject constructor(
       }
   }
 
-  private fun observeMediaPlayerStateListener() = viewModelScope.launch {
-    mediaPlayerServiceConnection.mediaPlayerState.collectLatest {
-      mediaPlayerState = it
-    }
-  }
-
   fun setUiEvent(event: RecorderScreenUiEvent) = viewModelScope.launch {
     _uiEvent.emit(event)
   }
 
   private fun initialAudioSetting() = viewModelScope.launch {
     currentAudioFormat = useCaseGetAudioFormat().first()
+  }
+
+  private fun observePlayerPosition() {
+    viewModelScope.launch {
+      mediaPlayerServiceConnection.mediaPlayerPosition.collect {
+        _mediaPlayerPosition.value = it
+      }
+    }
   }
 
   private fun observeMediaRecorderService() {
@@ -304,39 +325,33 @@ class AppRecorderViewModel @Inject constructor(
         launch {
           serviceConnection.mService.amplitudes.shareIn(
             viewModelScope,
-            SharingStarted.Eagerly,
+            SharingStarted.WhileSubscribed(5_000L),
             0,
           ).collect {
-            amplitudesList.add(it)
+            if (amplitudesList.size > 1000) {
+              amplitudesList.removeAt(amplitudesList.lastIndex)
+            }
+            amplitudesList.add(index = 0, it)
           }
         }
         launch {
-          serviceConnection.mService.recordTimer.collectLatest { time ->
+          serviceConnection.mService.recorderTimer.collectLatest { time ->
             _recordTime.update { time }
           }
         }
         launch {
           serviceConnection.mService.recorderState.collectLatest { recordState ->
-            recorderState = recordState
+            _recordState.update { recordState }
           }
         }
         launch {
           serviceConnection.mService.lastRecord.collect { uri ->
             useCaseGetRecordByUri(uri)?.let { recordDataList.add(0, it) }
-            if (recordDataList.size != 0) screenRecorderScreenUiState.value = RecorderScreenUiState.DATA
+            if (recordDataList.isNotEmpty()) screenRecorderScreenUiState.value = RecorderScreenUiState.DATA
             amplitudesList.clear()
           }
         }
       }
-    }
-  }
-
-  private fun observeMediaPlayerCurrentPosition() {
-    viewModelScope.launch {
-      mediaPlayerServiceConnection.currentPosition.stateIn(this, SharingStarted.Eagerly, 0)
-        .collectLatest { currentPosition ->
-          currentPlayerPosition = currentPosition?.toFloat() ?: 0f
-        }
     }
   }
 

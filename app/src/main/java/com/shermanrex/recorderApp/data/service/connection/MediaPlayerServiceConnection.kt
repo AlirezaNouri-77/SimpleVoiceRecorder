@@ -2,6 +2,9 @@ package com.shermanrex.recorderApp.data.service.connection
 
 import android.content.ComponentName
 import android.content.Context
+import android.media.AudioManager
+import androidx.core.content.ContextCompat.getSystemService
+import androidx.lifecycle.Lifecycle
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
@@ -12,12 +15,16 @@ import com.shermanrex.recorderApp.data.mapper.toMediaItem
 import com.shermanrex.recorderApp.data.service.MediaPlayerService
 import com.shermanrex.recorderApp.domain.model.record.RecordModel
 import com.shermanrex.recorderApp.domain.model.uiState.CurrentMediaPlayerState
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.isActive
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
 import javax.inject.Inject
 
 class MediaPlayerServiceConnection @Inject constructor(var context: Context) {
@@ -30,14 +37,14 @@ class MediaPlayerServiceConnection @Inject constructor(var context: Context) {
     initialListener()
   }
 
-  private var _mediaPlayerState = MutableStateFlow(CurrentMediaPlayerState())
+  private var _mediaPlayerState = MutableStateFlow(CurrentMediaPlayerState.Empty)
   var mediaPlayerState = _mediaPlayerState.asStateFlow()
 
-  var currentPosition = flow {
-    while (true) {
+  var mediaPlayerPosition = flow {
+    while (currentCoroutineContext().isActive) {
       delay(50L)
       if (mediaController?.isPlaying == true) {
-        emit(mediaController?.currentPosition)
+        emit(mediaController?.currentPosition ?: 0L)
       }
     }
   }
