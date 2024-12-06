@@ -11,7 +11,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -22,18 +22,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.MediaMetadata
+import com.shermanrex.recorderApp.domain.model.record.RecordAudioSetting
 import com.shermanrex.recorderApp.domain.model.record.RecorderState
 import com.shermanrex.recorderApp.domain.model.uiState.CurrentMediaPlayerState
 import com.shermanrex.recorderApp.presentation.screen.recorder.component.player.Player
-import com.shermanrex.recorderApp.presentation.ui.theme.AppRecorderTheme
 
 @Composable
 fun BottomSection(
   modifier: Modifier = Modifier,
   isOnSelectMode: Boolean,
+  currentAudioSetting: RecordAudioSetting,
   onDismissSelectMode: () -> Unit,
   onSelectAll: () -> Unit,
   onDeleteSelectModeClick: () -> Unit,
@@ -54,6 +54,8 @@ fun BottomSection(
   onShareClick: (itemUri: Uri) -> Unit,
   onClosePlayer: () -> Unit,
   currentPosition: () -> Long,
+  amplitudesList: () -> List<Float>,
+  recordTime: () -> Int,
 ) {
 
   val gradientColor = MaterialTheme.colorScheme.primary
@@ -89,7 +91,7 @@ fun BottomSection(
               animationSpec = tween(100)
             )
               .plus(
-                fadeOut(tween(50,20))
+                fadeOut(tween(50, 20))
               )
           )
       },
@@ -115,9 +117,9 @@ fun BottomSection(
           Card(
             modifier = modifier
               .fillMaxWidth()
-              .wrapContentSize()
+              .wrapContentHeight()
               .navigationBarsPadding()
-              .padding(horizontal = 20.dp),
+              .padding(horizontal = 10.dp),
             colors = CardDefaults.cardColors(
               containerColor = MaterialTheme.colorScheme.primary,
             ),
@@ -142,6 +144,9 @@ fun BottomSection(
                   onStopRecordClick = { onStopRecordClick() },
                   onStartRecordClick = { onStartRecordClick() },
                   onResumeRecordClick = { onResumeRecordClick() },
+                  amplitudesList = { amplitudesList() },
+                  currentAudioSetting = currentAudioSetting,
+                  recordTime = { recordTime() },
                 )
 
               }

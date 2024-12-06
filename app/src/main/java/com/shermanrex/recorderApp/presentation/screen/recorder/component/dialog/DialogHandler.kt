@@ -62,7 +62,6 @@ fun DialogHandler(
         onPositive = {
           onDismiss()
           onRenameRecord(currentItem(), it)
-          //   viewModel.renameRecord(targetItem = currentItem, newName = it)
         },
       )
     }
@@ -77,8 +76,6 @@ fun DialogHandler(
         onDismiss = { onDismiss() },
         onPositive = {
           onStartRecord(it)
-//        viewModel.sendActionToService(ServiceActionNotification.START)
-//        viewModel.startRecord(it)
         },
       )
     }

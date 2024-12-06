@@ -1,274 +1,108 @@
 package com.shermanrex.recorderApp.presentation.screen.recorder.component.bottomSection
 
-import android.Manifest
-import android.content.Context
-import android.content.pm.PackageManager
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.Animatable
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.isSystemInDarkTheme
+import android.content.res.Configuration
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ElevatedButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.SideEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
-import com.shermanrex.presentation.screen.component.util.NoRipple
-import com.shermanrex.recorderApp.R
-import com.shermanrex.recorderApp.data.Constant
+import com.shermanrex.recorderApp.domain.model.record.AudioFormat
+import com.shermanrex.recorderApp.domain.model.record.RecordAudioSetting
 import com.shermanrex.recorderApp.domain.model.record.RecorderState
-import com.shermanrex.recorderApp.presentation.util.bounce
-import com.shermanrex.recorderApp.presentation.util.getActivity
-import com.shermanrex.recorderApp.presentation.util.openSetting
+import com.shermanrex.recorderApp.presentation.screen.recorder.component.bottomSection.component.RecordController
+import com.shermanrex.recorderApp.presentation.screen.recorder.component.bottomSection.component.AmplitudesGraph
+import com.shermanrex.recorderApp.presentation.screen.recorder.component.bottomSection.component.RecordTimerAndConfig
+import com.shermanrex.recorderApp.presentation.ui.theme.AppRecorderTheme
 
 @Composable
 fun Recorder(
   modifier: Modifier = Modifier,
   recorderState: () -> RecorderState,
+  amplitudesList: () -> List<Float>,
+  currentAudioSetting: RecordAudioSetting,
+  recordTime: () -> Int,
   onPauseRecordClick: () -> Unit,
   onStopRecordClick: () -> Unit,
   onStartRecordClick: () -> Unit,
   onResumeRecordClick: () -> Unit,
-  context: Context = LocalContext.current,
 ) {
 
-  val isDarkMode = isSystemInDarkTheme()
-  var onButtonClick by remember {
-    mutableStateOf(false)
-  }
-  val animateButtonColor = remember {
-    Animatable(if (isDarkMode) Color.White else Color.Black)
-  }
-  var recordButtonColor by remember {
-    mutableStateOf(if (isDarkMode) Color.Black else Color.White)
-  }
-
-  var recordButtonText by remember {
-    mutableStateOf("Record")
-  }
-
-  LaunchedEffect(recorderState()) {
-    when (recorderState()) {
-      RecorderState.RECORDING -> {
-        recordButtonText = "Recording"
-        recordButtonColor = Color.White
-        animateButtonColor.animateTo(Color(0xFFED0909), tween(300))
-      }
-      RecorderState.IDLE -> {
-        recordButtonText = "Record"
-        recordButtonColor = if (isDarkMode) Color.Black else Color.White
-        animateButtonColor.animateTo(if (isDarkMode) Color.White else Color.Black, tween(300))
-      }
-      RecorderState.PAUSE -> {
-        recordButtonText = "Resume"
-        recordButtonColor = Color.White
-        animateButtonColor.animateTo(Color(0xFF1F75FF), tween(300))
-      }
-    }
-  }
-
-
-  if (onButtonClick) {
-    CheckMicrophonePermission(
-      context = context,
-      onGrant = {
-        onStartRecordClick()
-        onButtonClick = false
-      },
-      onDenied = {
-        onButtonClick = false
-      }
-    )
-  }
-
-  Row(
+  Column(
     modifier = modifier
       .fillMaxWidth()
-      .padding(vertical = 10.dp),
-    verticalAlignment = Alignment.CenterVertically,
-    horizontalArrangement = Arrangement.spacedBy(25.dp, Alignment.CenterHorizontally),
+      .wrapContentHeight(),
+    verticalArrangement = Arrangement.spacedBy(5.dp, Alignment.CenterVertically),
+    horizontalAlignment = Alignment.CenterHorizontally,
   ) {
-
-    IconButton(
+    AmplitudesGraph(
       modifier = Modifier
-        .bounce()
-        .weight(0.2f, false),
-      onClick = {
-        onPauseRecordClick()
-      },
-      interactionSource = NoRipple,
-      colors = IconButtonDefaults.iconButtonColors(
-        containerColor = Color.Transparent,
-        contentColor = MaterialTheme.colorScheme.onPrimary,
-      ),
-    ) {
-      Icon(
-        modifier = Modifier.size(19.dp),
-        painter = painterResource(id = R.drawable.pause),
-        contentDescription = "",
-      )
-    }
+        .fillMaxWidth()
+        .wrapContentHeight()
+        .padding(start = 15.dp, end =15.dp, top = 4.dp, bottom = 2.dp),
+      recorderState = { recorderState() },
+      amplitudesList = { amplitudesList() }
+    )
 
-    ElevatedButton(
-      modifier = Modifier.weight(0.5f, true),
-      onClick = {
-        if (recorderState() == RecorderState.PAUSE) {
-          onResumeRecordClick()
-        } else {
-          onButtonClick = true
-        }
-      },
-      colors = ButtonDefaults.elevatedButtonColors(
-        containerColor = animateButtonColor.value,
-      ),
-      elevation = ButtonDefaults.elevatedButtonElevation(
-        defaultElevation = 10.dp,
-        pressedElevation = 5.dp
-      )
-    ) {
-      Text(
-        text = recordButtonText,
-        fontWeight = FontWeight.SemiBold,
-        color = recordButtonColor,
-        fontSize = 19.sp,
-      )
-    }
-
-    IconButton(
+    Row(
       modifier = Modifier
-        .bounce()
-        .weight(0.2f, false),
-      onClick = {
-        onStopRecordClick()
-      },
-      interactionSource = NoRipple,
-      colors = IconButtonDefaults.iconButtonColors(
-        containerColor = Color.Transparent,
-        contentColor = MaterialTheme.colorScheme.onPrimary,
-      ),
+        .fillMaxWidth()
+        .padding(start = 20.dp, end = 20.dp, bottom = 7.dp),
+      horizontalArrangement = Arrangement.Center,
+      verticalAlignment = Alignment.CenterVertically,
     ) {
-      Icon(
-        modifier = Modifier.size(19.dp),
-        painter = painterResource(id = R.drawable.stop),
-        contentDescription = "",
+      RecordTimerAndConfig(
+        modifier = Modifier.weight(0.8f),
+        currentAudioSetting = currentAudioSetting,
+        recordTime = { recordTime() }
+      )
+      RecordController(
+        modifier = Modifier,
+        recorderState = { recorderState() },
+        onPauseRecordClick = { onPauseRecordClick() },
+        onStartRecordClick = { onStartRecordClick() },
+        onStopRecordClick = { onStopRecordClick() },
+        onResumeRecordClick = { onResumeRecordClick() },
       )
     }
   }
 }
 
+@Preview(name = "Light Mode", uiMode = Configuration.UI_MODE_NIGHT_NO)
+@Preview(name = "Dark Mode", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
-private fun CheckMicrophonePermission(
-  context: Context,
-  onGrant: () -> Unit,
-  onDenied: () -> Unit,
-) {
-
-  if (Constant.permissionList.all { ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED }) {
-    onGrant()
-    return
+private fun Preview() {
+  val list = mutableListOf<Float>()
+  repeat(700) {
+    var item = (1000..28000).random()
+    list.add(item.toFloat())
   }
-
-  val permissionList = remember { mutableListOf<String>() }
-
-  Constant.permissionList.forEach {
-    if (ContextCompat.checkSelfPermission(context, it) != PackageManager.PERMISSION_GRANTED && !permissionList.contains(it)) {
-      permissionList.add(it)
-    }
-  }
-
-  var microphonePermission by remember {
-    mutableStateOf(false)
-  }
-  var notificationPermission by remember {
-    mutableStateOf(false)
-  }
-
-  LaunchedEffect(notificationPermission, microphonePermission) {
-    if (notificationPermission && microphonePermission) onGrant()
-  }
-
-  permissionList.onEach {
-
-    val microphoneActivityResult = rememberLauncherForActivityResult(contract = ActivityResultContracts.RequestPermission()) { isGrant ->
-      when (isGrant) {
-        true -> permissionList.remove(it)
-        false -> onDenied()
-      }
-    }
-
-    when {
-      ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED -> {
-        if (it == Manifest.permission.RECORD_AUDIO) {
-          microphonePermission = true
-        } else notificationPermission = true
-      }
-
-      context.getActivity()?.let { it1 -> ActivityCompat.shouldShowRequestPermissionRationale(it1, it) } == true -> {
-        val dialogText = when (it) {
-          Manifest.permission.RECORD_AUDIO -> "The microphone permission isn't granted"
-          Manifest.permission.POST_NOTIFICATIONS -> "The notification permission isn't granted"
-          else -> ""
-        }
-        AlertDialog(
-          title = {
-            Text(text = "permission")
-          },
-          text = {
-            Text(text = dialogText)
-          },
-          onDismissRequest = {
-            onDenied()
-          },
-          dismissButton = {
-            Button(
-              onClick = {
-                onDenied()
-              }
-            ) { Text("Dismiss") }
-          },
-          confirmButton = {
-            Button(
-              onClick = context::openSetting
-            ) { Text("Open Setting") }
-          },
-          containerColor = MaterialTheme.colorScheme.primary
-        )
-      }
-
-      context.getActivity()?.let { it1 -> ActivityCompat.shouldShowRequestPermissionRationale(it1, it) } == false -> {
-        SideEffect { microphoneActivityResult.launch(it) }
-      }
-
-      else -> SideEffect { microphoneActivityResult.launch(it) }
-
+  AppRecorderTheme {
+    Box(
+      modifier = Modifier.background(MaterialTheme.colorScheme.primary)
+    ){
+      Recorder(
+        recorderState = { RecorderState.IDLE },
+        amplitudesList = { list },
+        currentAudioSetting = RecordAudioSetting(
+          AudioFormat.M4A,
+          bitrate = 128_000,
+          sampleRate = 441_000
+        ),
+        recordTime = { 0 },
+        onPauseRecordClick = {},
+        onStopRecordClick = {},
+        onStartRecordClick = {},
+        onResumeRecordClick = {},
+      )
     }
   }
 }
-
-

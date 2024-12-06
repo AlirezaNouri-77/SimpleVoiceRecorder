@@ -39,7 +39,8 @@ fun PermissionScreen(
 ) {
 
   var isNotificationPermission by remember {
-    mutableStateOf(false)
+    var isSdk = Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU
+    mutableStateOf(isSdk)
   }
   var isMicrophonePermission by remember {
     mutableStateOf(false)
@@ -57,11 +58,11 @@ fun PermissionScreen(
   }
 
   val safActivityResult = rememberLauncherForActivityResult(contract = ActivityResultContracts.OpenDocumentTree()) {
-      it?.let { uri ->
-        onLocation(uri)
-        isSafLocationGrant = true
-      }
+    it?.let { uri ->
+      onLocation(uri)
+      isSafLocationGrant = true
     }
+  }
 
   ConstraintLayout(
     modifier = modifier
@@ -108,7 +109,7 @@ fun PermissionScreen(
         color = MaterialTheme.colorScheme.onPrimary,
       )
 
-      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU){
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         Button(
           onClick = {
             notificationActivityResult.launch(Manifest.permission.POST_NOTIFICATIONS)

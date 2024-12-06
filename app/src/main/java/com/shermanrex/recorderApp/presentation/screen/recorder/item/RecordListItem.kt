@@ -44,9 +44,9 @@ fun RecordListItem(
   data: RecordModel,
   itemIndex: Int,
   currentItemIndex: Int,
-  isPlaying: Boolean,
   onSelectMode: Boolean,
   isItemSelected: Boolean,
+  isPlaying: () -> Boolean,
   onItemClick: (Int) -> Unit,
   onLongItemClick: (Int) -> Unit,
   onCheckBoxClick: (RecordModel) -> Unit,
@@ -78,7 +78,7 @@ fun RecordListItem(
         exit = fadeOut(),
       ) {
         WaveForm(
-          enable = isPlaying,
+          enable = isPlaying(),
           lineColor = MaterialTheme.colorScheme.onPrimary,
         )
       }
@@ -147,7 +147,7 @@ private fun Preview() {
         onCheckBoxClick = {},
         onSelectMode = true,
         isItemSelected = false,
-        isPlaying = false,
+        isPlaying = { false },
       )
       RecordListItem(
         modifier = Modifier.background(MaterialTheme.colorScheme.background),
@@ -159,7 +159,7 @@ private fun Preview() {
         onCheckBoxClick = {},
         onSelectMode = true,
         isItemSelected = true,
-        isPlaying = false,
+        isPlaying = { false },
       )
       RecordListItem(
         modifier = Modifier.background(MaterialTheme.colorScheme.background),
@@ -171,7 +171,7 @@ private fun Preview() {
         onCheckBoxClick = {},
         onSelectMode = false,
         isItemSelected = false,
-        isPlaying = true,
+        isPlaying = { true },
       )
       RecordListItem(
         modifier = Modifier.background(MaterialTheme.colorScheme.background),
@@ -183,7 +183,7 @@ private fun Preview() {
         onCheckBoxClick = {},
         onSelectMode = false,
         isItemSelected = false,
-        isPlaying = false,
+        isPlaying = { false },
       )
     }
   }
