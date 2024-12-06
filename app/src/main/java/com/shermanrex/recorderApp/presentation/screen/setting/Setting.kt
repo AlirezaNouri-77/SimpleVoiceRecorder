@@ -3,6 +3,7 @@ package com.shermanrex.recorderApp.presentation.screen.setting
 import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -111,18 +112,22 @@ fun BottomSheetContent(
   onAudioSampleRateClick: (Int) -> Unit,
   onPathClick: () -> Unit,
 ) {
-  Surface(
+  Box(
     modifier = modifier
       .fillMaxWidth()
       .navigationBarsPadding()
       .padding(start = 15.dp, end = 15.dp, bottom = 5.dp),
-    color = Color.Transparent,
+    contentAlignment = Alignment.TopCenter,
   ) {
     Column(
       verticalArrangement = Arrangement.spacedBy(10.dp, alignment = Alignment.Top),
       horizontalAlignment = Alignment.Start,
     ) {
-      Text(text = "Setting", fontWeight = FontWeight.Bold, fontSize = 38.sp)
+      Text(
+        text = "Setting",
+        fontWeight = FontWeight.Bold,
+        fontSize = 38.sp
+      )
       NameSection(
         currentItem = currentFileName,
         onItemClick = { item, _ ->
@@ -171,8 +176,8 @@ private fun Preview() {
       ),
       currentFileName = SettingNameFormat.TIME,
       currentSavePath = "Test Path".toUri(),
-      onNameFormatClick = {},
-      onAudioFormatClick = {},
+      onNameFormatClick = { SettingNameFormat.ASK_ON_RECORD },
+      onAudioFormatClick = { AudioFormat.M4A },
       onAudioBitRateClick = {},
       onAudioSampleRateClick = {},
       onPathClick = {},

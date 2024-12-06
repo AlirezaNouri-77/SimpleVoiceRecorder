@@ -10,6 +10,7 @@ import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -26,7 +27,9 @@ fun NameSection(
   val example = if (currentItem != SettingNameFormat.ASK_ON_RECORD) {
     "Example: ${convertTimeStampToDate(currentItem.pattern)}"
   } else "Example: My custom name"
-  val list = SettingNameFormat.entries.toList()
+  val list = remember {
+    SettingNameFormat.entries.toList()
+  }
 
   Column {
     Text(text = "File name", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
@@ -39,8 +42,8 @@ fun NameSection(
           selected = item == currentItem,
           onClick = { onItemClick(item, item.id) },
           colors = FilterChipDefaults.filterChipColors(
-            containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 1f),
-            selectedContainerColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.05f),
+            containerColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.05f),
+            selectedContainerColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f),
           ),
           border = BorderStroke(0.dp, Color.Transparent),
           label = {
