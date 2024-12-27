@@ -1,7 +1,6 @@
 package com.shermanrex.recorderApp.presentation.screen.recorder
 
 import android.net.Uri
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
@@ -19,12 +18,10 @@ import com.shermanrex.recorderApp.domain.model.record.RecordAudioSetting
 import com.shermanrex.recorderApp.domain.model.record.RecordModel
 import com.shermanrex.recorderApp.domain.model.record.RecorderState
 import com.shermanrex.recorderApp.domain.model.record.SettingNameFormat
-import com.shermanrex.recorderApp.domain.model.repository.Failure
 import com.shermanrex.recorderApp.domain.model.repository.RepositoryResult
 import com.shermanrex.recorderApp.domain.model.ui.DropDownMenuStateUi
 import com.shermanrex.recorderApp.domain.model.uiState.CurrentMediaPlayerState
 import com.shermanrex.recorderApp.domain.model.uiState.RecorderScreenUiEvent
-import com.shermanrex.recorderApp.domain.model.uiState.RecorderScreenUiState
 import com.shermanrex.recorderApp.domain.useCase.datastore.UseCaseGetAudioFormat
 import com.shermanrex.recorderApp.domain.useCase.datastore.UseCaseGetNameFormat
 import com.shermanrex.recorderApp.domain.useCase.datastore.UseCaseGetSavePath
@@ -51,8 +48,6 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
@@ -83,7 +78,7 @@ class AppRecorderViewModel @Inject constructor(
   private var useCaseGetDocumentTreeFileFromUri: UseCaseGetDocumentTreeFileFromUri,
 ) : ViewModel() {
 
-  var screenRecorderScreenUiState = mutableStateOf(RecorderScreenUiState.LOADING)
+  var isLoading by mutableStateOf(false)
 
   var recordDataList = mutableStateListOf<RecordModel>()
   var amplitudesList = mutableStateListOf<Float>()
@@ -98,7 +93,7 @@ class AppRecorderViewModel @Inject constructor(
   var showSelectMode by mutableStateOf(false)
   var currentItemIndex by mutableIntStateOf(-1)
 
-  private var _uiEvent = MutableSharedFlow<RecorderScreenUiEvent>()
+  private var _uiEvent = MutableSharedFlow<RecorderScreenUiEvent>(replay = 1)
   var uiEvent = _uiEvent.asSharedFlow()
 
   private var _recordTime = MutableStateFlow(0)
@@ -161,7 +156,6 @@ class AppRecorderViewModel @Inject constructor(
       if (useCaseDeleteRecord(recordModel.path)) {
         recordDataList.remove(recordModel)
       }
-      if (recordDataList.isEmpty()) screenRecorderScreenUiState.value = RecorderScreenUiState.EMPTY
     }
   }
 
@@ -224,7 +218,10 @@ class AppRecorderViewModel @Inject constructor(
     }
   }
 
-  fun stopRecord() = serviceConnection.mService.stopRecord()
+  fun stopRecord() {
+    serviceConnection.mService.stopRecord()
+    amplitudesList.clear()
+  }
 
 
   fun writeDataStoreSavePath(savePath: String, shouldUpdateList: Boolean = false) = viewModelScope.launch {
@@ -233,7 +230,7 @@ class AppRecorderViewModel @Inject constructor(
   }
 
   fun pauseRecord() {
-    if (_recordState.value == RecorderState.RECORDING) {
+    if (recorderState.value == RecorderState.RECORDING) {
       serviceConnection.mService.pauseRecord()
     }
   }
@@ -271,8 +268,8 @@ class AppRecorderViewModel @Inject constructor(
   fun fastBackForwardAudio() = mediaPlayerServiceConnection.backForwardAudio()
 
   fun seekToPosition(position: Float) {
-    mediaPlayerServiceConnection.seekToPosition(position = position)
     _mediaPlayerPosition.update { position.toLong() }
+    mediaPlayerServiceConnection.seekToPosition(position = position)
   }
 
   private fun getRecords() = viewModelScope.launch {
@@ -290,14 +287,11 @@ class AppRecorderViewModel @Inject constructor(
           is RepositoryResult.Success -> {
             recordDataList.clear()
             recordDataList.addAll(result.data)
-            screenRecorderScreenUiState.value = RecorderScreenUiState.DATA
+            isLoading = false
           }
 
-          is RepositoryResult.Failure -> when (result.error) {
-            Failure.Empty -> screenRecorderScreenUiState.value = RecorderScreenUiState.EMPTY
-          }
-
-          RepositoryResult.Loading -> screenRecorderScreenUiState.value = RecorderScreenUiState.LOADING
+          is RepositoryResult.Failure -> isLoading = false
+          RepositoryResult.Loading -> isLoading = true
         }
       }
   }
@@ -347,8 +341,6 @@ class AppRecorderViewModel @Inject constructor(
         launch {
           serviceConnection.mService.lastRecord.collect { uri ->
             useCaseGetRecordByUri(uri)?.let { recordDataList.add(0, it) }
-            if (recordDataList.isNotEmpty()) screenRecorderScreenUiState.value = RecorderScreenUiState.DATA
-            amplitudesList.clear()
           }
         }
       }

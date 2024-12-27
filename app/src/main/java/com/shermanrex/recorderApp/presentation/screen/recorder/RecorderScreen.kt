@@ -6,20 +6,15 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.Crossfade
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -30,14 +25,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -48,7 +40,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.shermanrex.recorderApp.domain.model.record.RecorderState
 import com.shermanrex.recorderApp.domain.model.uiState.RecorderScreenUiEvent
-import com.shermanrex.recorderApp.domain.model.uiState.RecorderScreenUiState
+import com.shermanrex.recorderApp.presentation.screen.recorder.component.CenterMessage
 import com.shermanrex.recorderApp.presentation.screen.recorder.component.ListDropDownMenu
 import com.shermanrex.recorderApp.presentation.screen.recorder.component.bottomSection.BottomSection
 import com.shermanrex.recorderApp.presentation.screen.recorder.component.dialog.DialogHandler
@@ -95,8 +87,8 @@ fun RecorderScreen(
   DisposableEffect(key1 = lifecycleOwner) {
     val observer = LifecycleEventObserver { _, event ->
       when (event) {
-        Lifecycle.Event.ON_START -> scope.launch { viewModel.serviceConnection.bindService() }
-        Lifecycle.Event.ON_DESTROY -> viewModel.serviceConnection.unBindService()
+        Lifecycle.Event.ON_RESUME -> scope.launch { viewModel.serviceConnection.bindService() }
+        Lifecycle.Event.ON_STOP -> viewModel.serviceConnection.unBindService()
         else -> {}
       }
     }
@@ -186,18 +178,9 @@ fun RecorderScreen(
         viewModel.dropDownMenuState = viewModel.dropDownMenuState.copy(longPressOffset = it)
       },
     topBar = {
-      ElevatedCard (
-        colors = CardDefaults.cardColors(
-          containerColor = Color.Red,
-        ),
-        elevation = CardDefaults.elevatedCardElevation(
-          defaultElevation = 4.dp,
-        )
-      ) {
-        RecorderTopBar(
-          onSettingClick = { viewModel.showSettingBottomSheet = true },
-        )
-      }
+      RecorderTopBar(
+        onSettingClick = { viewModel.showSettingBottomSheet = true },
+      )
     },
     containerColor = MaterialTheme.colorScheme.background,
   ) { innerPadding ->
@@ -218,73 +201,71 @@ fun RecorderScreen(
             end.linkTo(parent.end)
             bottom.linkTo(parent.bottom)
           },
-        targetState = viewModel.screenRecorderScreenUiState.value,
+        targetState = viewModel.isLoading,
         label = "",
-      ) { state ->
+      ) { isLoading ->
 
-        when (state) {
-          RecorderScreenUiState.LOADING, RecorderScreenUiState.EMPTY -> {
-            Box(
-              modifier = Modifier
-                .fillMaxSize()
-                .padding(bottom = bottomSectionSize),
-              contentAlignment = Alignment.Center,
-            ) {
-              Text(
-                text = if (viewModel.screenRecorderScreenUiState.value == RecorderScreenUiState.EMPTY) "No Record" else "Loading",
-                fontWeight = FontWeight.Bold,
-                fontSize = 20.sp,
-                color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f),
+        when (isLoading) {
+          true -> CenterMessage(
+            modifier = Modifier
+              .fillMaxSize()
+              .padding(bottom = bottomSectionSize),
+            message = "Loading",
+          )
+
+          false -> {
+            if (viewModel.recordDataList.isNotEmpty()) {
+              LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                contentPadding = PaddingValues(
+                  bottom = bottomSectionSize,
+                  top = 10.dp,
+                  start = 10.dp,
+                  end = 10.dp,
+                ),
+              ) {
+                itemsIndexed(
+                  items = viewModel.recordDataList,
+                  key = { _, item -> item.id },
+                ) { index, item ->
+                  RecordListItem(
+                    modifier = Modifier.animateItem(),
+                    data = item,
+                    itemIndex = index,
+                    currentItemIndex = viewModel.currentItemIndex,
+                    isPlaying = { currentMediaPlayerState.isPlaying },
+                    onItemClick = {
+                      if (!viewModel.showSelectMode && recorderState != RecorderState.IDLE) return@RecordListItem
+                      viewModel.startPlayAudio(item)
+                      viewModel.currentItemIndex = it
+                    },
+                    onLongItemClick = {
+                      if (currentMediaPlayerState.isPlaying) return@RecordListItem
+                      viewModel.dropDownMenuState = viewModel.dropDownMenuState.copy(showDropDown = true, itemIndex = it)
+                    },
+                    isItemSelected = viewModel.selectedItemList.contains(item),
+                    onCheckBoxClick = {
+                      if (!viewModel.selectedItemList.contains(item)) {
+                        viewModel.selectedItemList.add(item)
+                      } else {
+                        viewModel.selectedItemList.remove(item)
+                      }
+                    },
+                    onSelectMode = viewModel.showSelectMode,
+                  )
+                }
+              }
+            } else {
+              CenterMessage(
+                modifier = Modifier
+                  .fillMaxSize()
+                  .padding(bottom = bottomSectionSize),
+                message = "Empty"
               )
             }
           }
-
-          RecorderScreenUiState.DATA -> {
-            LazyColumn(
-              modifier = Modifier.fillMaxSize(),
-              horizontalAlignment = Alignment.CenterHorizontally,
-              contentPadding = PaddingValues(
-                bottom = bottomSectionSize,
-                top = 10.dp,
-                start = 10.dp,
-                end = 10.dp,
-              ),
-            ) {
-              itemsIndexed(
-                items = viewModel.recordDataList,
-                key = { _, item -> item.id },
-              ) { index, item ->
-                RecordListItem(
-                  modifier = Modifier.animateItem(),
-                  data = item,
-                  itemIndex = index,
-                  currentItemIndex = viewModel.currentItemIndex,
-                  isPlaying = { currentMediaPlayerState.isPlaying },
-                  onItemClick = {
-                    if (!viewModel.showSelectMode && recorderState != RecorderState.IDLE) return@RecordListItem
-                    viewModel.startPlayAudio(item)
-                    viewModel.currentItemIndex = it
-                  },
-                  onLongItemClick = {
-                    if (currentMediaPlayerState.isPlaying) return@RecordListItem
-                    viewModel.dropDownMenuState = viewModel.dropDownMenuState.copy(showDropDown = true, itemIndex = it)
-                  },
-                  isItemSelected = viewModel.selectedItemList.contains(item),
-                  onCheckBoxClick = {
-                    if (!viewModel.selectedItemList.contains(item)) {
-                      viewModel.selectedItemList.add(item)
-                    } else {
-                      viewModel.selectedItemList.remove(item)
-                    }
-                  },
-                  onSelectMode = viewModel.showSelectMode,
-                )
-              }
-
-            }
-          }
         }
-
       }
 
       BottomSection(
