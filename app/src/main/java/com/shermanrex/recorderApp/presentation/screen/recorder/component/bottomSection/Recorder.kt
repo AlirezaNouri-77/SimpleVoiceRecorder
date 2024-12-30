@@ -18,8 +18,8 @@ import androidx.compose.ui.unit.dp
 import com.shermanrex.recorderApp.domain.model.record.AudioFormat
 import com.shermanrex.recorderApp.domain.model.record.RecordAudioSetting
 import com.shermanrex.recorderApp.domain.model.record.RecorderState
-import com.shermanrex.recorderApp.presentation.screen.recorder.component.bottomSection.component.RecordController
 import com.shermanrex.recorderApp.presentation.screen.recorder.component.bottomSection.component.AmplitudesGraph
+import com.shermanrex.recorderApp.presentation.screen.recorder.component.bottomSection.component.RecordController
 import com.shermanrex.recorderApp.presentation.screen.recorder.component.bottomSection.component.RecordTimerAndConfig
 import com.shermanrex.recorderApp.presentation.ui.theme.AppRecorderTheme
 

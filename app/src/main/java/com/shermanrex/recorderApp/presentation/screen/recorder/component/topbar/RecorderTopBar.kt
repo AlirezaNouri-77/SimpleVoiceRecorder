@@ -1,8 +1,6 @@
 package com.shermanrex.recorderApp.presentation.screen.recorder.component.topbar
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -32,7 +30,7 @@ fun RecorderTopBar(
     colors = TopAppBarDefaults.topAppBarColors(
       actionIconContentColor = MaterialTheme.colorScheme.onPrimary,
       titleContentColor = MaterialTheme.colorScheme.onPrimary,
-      containerColor = MaterialTheme.colorScheme.primary,
+      containerColor = Color.Transparent,
     ),
     title = {
       Text(

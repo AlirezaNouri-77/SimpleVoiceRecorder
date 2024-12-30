@@ -3,7 +3,6 @@ package com.shermanrex.recorderApp.domain.useCase.repository
 import android.net.Uri
 import com.shermanrex.recorderApp.data.repository.RecordRepository
 import com.shermanrex.recorderApp.domain.model.record.RecordModel
-import kotlinx.coroutines.Deferred
 import javax.inject.Inject
 
 class UseCaseGetRecordByUri @Inject constructor(

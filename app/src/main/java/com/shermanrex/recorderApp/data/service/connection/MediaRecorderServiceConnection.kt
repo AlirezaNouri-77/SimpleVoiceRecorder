@@ -7,6 +7,7 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.os.IBinder
 import com.shermanrex.recorderApp.data.service.MediaRecorderService
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 import kotlin.coroutines.suspendCoroutine
 
@@ -16,7 +17,7 @@ class MediaRecorderServiceConnection @Inject constructor(
 
   private lateinit var mConnection: ServiceConnection
   lateinit var mService: MediaRecorderService
-  private var isBind = false
+  private var isBind = AtomicBoolean(false)
 
   suspend fun bindService(): Boolean {
     return suspendCoroutine { continuation ->
@@ -24,12 +25,12 @@ class MediaRecorderServiceConnection @Inject constructor(
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
           val binder = service as MediaRecorderService.MyServiceBinder
           mService = binder.getService()
-          isBind = true
+          isBind.set(true)
           continuation.resumeWith(Result.success(true))
         }
 
         override fun onServiceDisconnected(name: ComponentName?) {
-          isBind = false
+          isBind.set(false)
           continuation.resumeWith(Result.success(false))
         }
       }
@@ -42,7 +43,10 @@ class MediaRecorderServiceConnection @Inject constructor(
   }
 
   fun unBindService() {
-    if (isBind) context.unbindService(mConnection)
+    if (isBind.get()) {
+      isBind.set(false)
+      context.unbindService(mConnection)
+    }
   }
 
 }

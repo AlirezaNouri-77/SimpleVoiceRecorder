@@ -2,9 +2,6 @@ package com.shermanrex.recorderApp.data.service.connection
 
 import android.content.ComponentName
 import android.content.Context
-import android.media.AudioManager
-import androidx.core.content.ContextCompat.getSystemService
-import androidx.lifecycle.Lifecycle
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
@@ -15,13 +12,10 @@ import com.shermanrex.recorderApp.data.mapper.toMediaItem
 import com.shermanrex.recorderApp.data.service.MediaPlayerService
 import com.shermanrex.recorderApp.domain.model.record.RecordModel
 import com.shermanrex.recorderApp.domain.model.uiState.CurrentMediaPlayerState
-import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
